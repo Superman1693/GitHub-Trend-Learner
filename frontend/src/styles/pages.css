@@ -1,0 +1,214 @@
+/* 页面级布局样式（跨页面复用的栅格与统计卡片）。 */
+
+.page-head {
+  margin-bottom: var(--sp-6);
+}
+
+.page-head__title {
+  font-size: var(--fs-xl);
+  font-weight: 600;
+  margin-bottom: var(--sp-2);
+}
+
+.page-head__desc {
+  color: var(--c-text-muted);
+  font-size: var(--fs-sm);
+  max-width: 68ch;
+}
+
+.grid {
+  display: grid;
+  gap: var(--sp-4);
+}
+
+.grid--stats {
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.grid--split {
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+}
+
+.stat {
+  position: relative;
+  overflow: hidden;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-lg);
+  padding: var(--sp-4) var(--sp-5);
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow var(--dur-base) var(--ease-out),
+    transform var(--dur-base) var(--ease-out);
+}
+
+.stat:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+
+.stat::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 2px;
+  background: var(--grad-brand);
+  opacity: 0.85;
+}
+
+.stat__label {
+  font-size: var(--fs-xs);
+  color: var(--c-text-subtle);
+  margin-bottom: var(--sp-2);
+  letter-spacing: 0.02em;
+}
+
+.stat__value {
+  font-size: var(--fs-2xl);
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.stat__unit {
+  font-size: var(--fs-sm);
+  font-weight: 400;
+  color: var(--c-text-subtle);
+  margin-left: var(--sp-1);
+}
+
+.stat__hint {
+  font-size: var(--fs-xs);
+  color: var(--c-text-subtle);
+  margin-top: var(--sp-2);
+}
+
+/* 键值列表 */
+.kv-list {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--sp-3) var(--sp-5);
+  font-size: var(--fs-sm);
+  align-items: center;
+}
+
+.kv-list__k {
+  color: var(--c-text-subtle);
+  white-space: nowrap;
+}
+
+.kv-list__v {
+  word-break: break-all;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  flex-wrap: wrap;
+}
+
+/* 日期分布条 */
+.bar-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+
+.bar-item {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr) 40px;
+  align-items: center;
+  gap: var(--sp-3);
+  font-size: var(--fs-sm);
+}
+
+.bar-item__track {
+  height: 8px;
+  background: var(--c-surface-alt);
+  border-radius: var(--r-full);
+  overflow: hidden;
+}
+
+.bar-item__fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--c-accent), #5b83e2);
+  border-radius: var(--r-full);
+  transition: width var(--dur-slow) var(--ease-out);
+}
+
+.bar-item__value {
+  text-align: right;
+  color: var(--c-text-muted);
+  font-size: var(--fs-xs);
+}
+
+/* 快捷入口 */
+.quick-links {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--sp-3);
+}
+
+.quick-link {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-4);
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-lg);
+  color: var(--c-text);
+  box-shadow: var(--shadow-xs);
+  transition: border-color var(--dur-base) var(--ease-out),
+    box-shadow var(--dur-base) var(--ease-out), transform var(--dur-base) var(--ease-out);
+}
+
+.quick-link:hover {
+  border-color: var(--c-accent-border);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+  text-decoration: none;
+}
+
+.quick-link__icon {
+  width: 36px;
+  height: 36px;
+  flex: none;
+  border-radius: var(--r-md);
+  background: var(--c-accent-soft);
+  color: var(--c-accent);
+  display: grid;
+  place-items: center;
+  box-shadow: inset 0 0 0 1px var(--c-accent-border);
+}
+
+.quick-link__title {
+  font-size: var(--fs-sm);
+  font-weight: 600;
+}
+
+.quick-link__desc {
+  font-size: var(--fs-xs);
+  color: var(--c-text-subtle);
+  margin-top: 2px;
+}
+
+@media (max-width: 1023px) {
+  .grid--split {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 767px) {
+  .page-head__title {
+    font-size: var(--fs-lg);
+  }
+
+  .bar-item {
+    grid-template-columns: 80px minmax(0, 1fr) 34px;
+  }
+
+  .stat {
+    padding: var(--sp-3) var(--sp-4);
+  }
+
+  .stat__value {
+    font-size: var(--fs-xl);
+  }
+}

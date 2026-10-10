@@ -1,0 +1,4 @@
+requests>=2.28
+
+# 开发/测试（可选）：pip install pytest && python -m pytest tests/
+# pytest>=7

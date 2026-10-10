@@ -1,0 +1,45 @@
+# ---- Python ----
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# ---- 虚拟环境 ----
+.venv/
+venv/
+env/
+
+# ---- 密钥与本地配置（NFR6：敏感信息不进版本库）----
+.env
+.env.*
+!.env.example
+
+# ---- 运行期数据（可再生，体积会持续增长）----
+cache/
+outputs/
+logs/
+
+# ---- 前端 ----
+node_modules/
+dist/
+*.local
+.vite/
+
+# ---- 编辑器 / 系统 ----
+.history/
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+
+# ---- 历史快照（口径已过期，见 CODE_REVIEW.md A7）----
+_backup_v1.5_20261008/
+
+# ---- 临时文件 ----
+*.tmp
+*.bak

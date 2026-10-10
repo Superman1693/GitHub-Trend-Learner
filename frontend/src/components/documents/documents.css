@@ -1,0 +1,343 @@
+/* 文档列表与阅读器样式。 */
+
+/* ---------------- 筛选栏 ---------------- */
+.toolbar {
+  display: flex;
+  gap: var(--sp-3);
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: var(--sp-5);
+}
+
+.toolbar__search {
+  position: relative;
+  flex: 1;
+  min-width: 200px;
+}
+
+.toolbar__search .input {
+  padding-left: 34px;
+}
+
+.toolbar__search-icon {
+  position: absolute;
+  left: 11px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--c-text-subtle);
+  pointer-events: none;
+}
+
+/* ---------------- 常驻返回栏（文档详情） ---------------- */
+.reader-backbar {
+  position: sticky;
+  top: calc(var(--topbar-h) + 8px);
+  z-index: calc(var(--z-sticky) - 1);
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  margin-bottom: var(--sp-5);
+  padding: 7px var(--sp-3);
+  border-radius: var(--r-full);
+  background: var(--c-glass-strong);
+  backdrop-filter: saturate(1.6) blur(14px);
+  -webkit-backdrop-filter: saturate(1.6) blur(14px);
+  border: 1px solid var(--c-border);
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow var(--dur-base) var(--ease-out);
+}
+
+.reader-backbar:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.reader-backbar__btn {
+  flex: none;
+}
+
+.reader-backbar__title {
+  min-width: 0;
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  color: var(--c-text-muted);
+}
+
+@media (max-width: 767px) {
+  .reader-backbar {
+    top: calc(var(--topbar-h) + 4px);
+    margin-bottom: var(--sp-4);
+  }
+
+  .reader-backbar__title {
+    display: none;
+  }
+}
+
+/* ---------------- 文档列表 ---------------- */
+.doc-list {
+  display: grid;
+  gap: var(--sp-3);
+}
+
+.doc-card {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+  padding: var(--sp-4) var(--sp-5);
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-sm);
+  transition: border-color var(--dur-base) var(--ease-out),
+    box-shadow var(--dur-base) var(--ease-out), transform var(--dur-base) var(--ease-out);
+}
+
+.doc-card:hover {
+  border-color: var(--c-accent-border);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+  text-decoration: none;
+}
+
+.doc-card__body {
+  flex: 1;
+  min-width: 0;
+}
+
+.doc-card__title {
+  font-size: var(--fs-md);
+  font-weight: 600;
+  color: var(--c-text);
+  margin-bottom: var(--sp-2);
+}
+
+.doc-card__meta {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  flex-wrap: wrap;
+}
+
+.doc-card__arrow {
+  color: var(--c-text-subtle);
+  flex: none;
+}
+
+/* ---------------- 日期分组 ---------------- */
+.date-group {
+  margin-bottom: var(--sp-6);
+}
+
+.date-group__head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-3);
+  margin-bottom: var(--sp-3);
+  padding-bottom: var(--sp-2);
+  border-bottom: 1px solid var(--c-border);
+}
+
+.date-group__title {
+  font-size: var(--fs-sm);
+  font-weight: 600;
+}
+
+/* ---------------- 阅读器 ---------------- */
+.reader {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 220px;
+  gap: var(--sp-6);
+  align-items: start;
+}
+
+.reader__main {
+  min-width: 0;
+}
+
+.reader__head {
+  margin-bottom: var(--sp-5);
+}
+
+.reader__title {
+  font-size: var(--fs-2xl);
+  font-weight: 600;
+  margin-bottom: var(--sp-3);
+  line-height: 1.3;
+}
+
+.reader__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2) var(--sp-4);
+  font-size: var(--fs-sm);
+  color: var(--c-text-muted);
+  margin-bottom: var(--sp-3);
+}
+
+.reader__meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+.reader__paper {
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-lg);
+  padding: var(--sp-8) var(--sp-8);
+  box-shadow: var(--shadow-sm);
+}
+
+.reader__paper section {
+  scroll-margin-top: 130px;
+}
+
+.reader__toc {
+  /* 桌面常驻目录：必须是 .reader 网格的第二列。
+     sticky 依赖「有确定列宽与行高的网格单元格」，放进单列容器会吸顶遮挡正文。
+     顶部预留返回栏高度，避免与 .reader-backbar 重叠。 */
+  position: sticky;
+  top: calc(var(--topbar-h) + 68px);
+  /* 目录过长时在自身内部滚动，不撑破视口、不覆盖正文 */
+  max-height: calc(100vh - var(--topbar-h) - 96px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.toc {
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-lg);
+  padding: var(--sp-4);
+  box-shadow: var(--shadow-xs);
+}
+
+.toc__title {
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  color: var(--c-text-subtle);
+  letter-spacing: 0.04em;
+  margin-bottom: var(--sp-3);
+}
+
+.toc__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.toc__link {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-2);
+  width: 100%;
+  padding: var(--sp-2) var(--sp-3);
+  border: none;
+  background: none;
+  border-radius: var(--r-md);
+  font-size: var(--fs-sm);
+  color: var(--c-text-muted);
+  text-align: left;
+  transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
+}
+
+.toc__link:hover {
+  background: var(--c-surface-alt);
+  color: var(--c-text);
+}
+
+.toc__link.is-active {
+  background: var(--c-accent-soft);
+  color: var(--c-accent);
+  font-weight: 500;
+}
+
+.toc__index {
+  font-size: var(--fs-xs);
+  color: var(--c-text-subtle);
+  flex: none;
+}
+
+.toc__label {
+  flex: 1;
+  min-width: 0;
+}
+
+/* 移动端折叠式目录 */
+.toc-mobile {
+  margin-bottom: var(--sp-4);
+}
+
+.toc-mobile__toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: var(--sp-3) var(--sp-4);
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-md);
+  font-size: var(--fs-sm);
+  font-weight: 500;
+}
+
+.toc-mobile__panel {
+  border: 1px solid var(--c-border);
+  border-top: none;
+  border-radius: 0 0 var(--r-md) var(--r-md);
+  background: var(--c-surface);
+  padding: var(--sp-2);
+}
+
+.toc-mobile__chevron {
+  display: inline-flex;
+  transition: transform var(--dur-base) var(--ease-out);
+}
+
+/* ---------------- 响应式 ---------------- */
+@media (max-width: 1023px) {
+  .reader {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .reader__toc {
+    display: none;
+  }
+
+  .reader__paper {
+    padding: var(--sp-5) var(--sp-5);
+  }
+}
+
+@media (max-width: 767px) {
+  .doc-card {
+    padding: var(--sp-4);
+    gap: var(--sp-3);
+  }
+
+  .reader__title {
+    font-size: var(--fs-xl);
+  }
+
+  .reader__paper {
+    padding: var(--sp-4) var(--sp-4);
+    border-radius: var(--r-md);
+  }
+
+  .toolbar {
+    gap: var(--sp-2);
+  }
+
+  .toolbar__search {
+    flex-basis: 100%;
+  }
+}
+
+@media (min-width: 1024px) {
+  .toc-mobile {
+    display: none;
+  }
+}

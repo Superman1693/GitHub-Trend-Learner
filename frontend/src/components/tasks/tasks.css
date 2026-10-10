@@ -1,0 +1,141 @@
+/* 任务中心样式。 */
+
+.launcher {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--sp-3);
+  align-items: end;
+}
+
+.launcher__row {
+  display: flex;
+  gap: var(--sp-2);
+  align-items: center;
+  margin-top: var(--sp-3);
+  flex-wrap: wrap;
+}
+
+.segmented {
+  display: inline-flex;
+  padding: 3px;
+  background: var(--c-surface-alt);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-md);
+}
+
+.segmented__item {
+  padding: var(--sp-2) var(--sp-4);
+  border: none;
+  background: none;
+  border-radius: var(--r-sm);
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  color: var(--c-text-muted);
+  transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
+}
+
+.segmented__item.is-active {
+  background: var(--c-surface);
+  color: var(--c-text);
+  box-shadow: var(--shadow-sm);
+}
+
+/* ---------------- 任务列表 ---------------- */
+.task-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+
+.task-item {
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-lg);
+  background: var(--c-surface);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+.task-item__head {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-3) var(--sp-4);
+  cursor: pointer;
+  width: 100%;
+  border: none;
+  background: none;
+  text-align: left;
+}
+
+.task-item__head:hover {
+  background: var(--c-surface-alt);
+}
+
+.task-item__title {
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  min-width: 0;
+}
+
+.task-item__sub {
+  font-size: var(--fs-xs);
+  color: var(--c-text-subtle);
+  margin-top: 2px;
+}
+
+.task-item__body {
+  border-top: 1px solid var(--c-border);
+  padding: var(--sp-4);
+  background: var(--c-surface-alt);
+}
+
+.task-log {
+  margin: 0;
+  padding: var(--sp-3) var(--sp-4);
+  background: #2c2c2a;
+  color: #e8e6e0;
+  border-radius: var(--r-md);
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  line-height: 1.7;
+  max-height: 320px;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.task-log:empty::after {
+  content: '（暂无日志输出）';
+  color: #918f89;
+}
+
+.kv {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--sp-2) var(--sp-4);
+  font-size: var(--fs-sm);
+  margin-bottom: var(--sp-4);
+}
+
+.kv__k {
+  color: var(--c-text-subtle);
+  white-space: nowrap;
+}
+
+.kv__v {
+  word-break: break-all;
+}
+
+@media (max-width: 767px) {
+  .launcher {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .launcher .btn {
+    width: 100%;
+  }
+
+  .task-item__head {
+    padding: var(--sp-3);
+  }
+}

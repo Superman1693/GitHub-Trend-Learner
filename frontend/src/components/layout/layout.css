@@ -1,0 +1,331 @@
+/* 应用外壳布局：桌面固定侧栏，移动端抽屉 + 底部导航。 */
+
+.shell {
+  display: flex;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+/* ---------------- Sidebar ---------------- */
+.sidebar {
+  width: var(--sidebar-w);
+  flex: none;
+  background: linear-gradient(180deg, var(--c-bg-tint) 0%, #f0ede8 100%);
+  border-right: 1px solid var(--c-border);
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100dvh;
+  z-index: var(--z-sidebar);
+}
+
+.sidebar__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-5) var(--sp-4) var(--sp-4);
+}
+
+.sidebar__mark {
+  width: 34px;
+  height: 34px;
+  flex: none;
+  border-radius: var(--r-md);
+  background: var(--grad-brand);
+  color: var(--c-text-inverse);
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  font-size: var(--fs-xs);
+  letter-spacing: 0.02em;
+  box-shadow: 0 4px 10px rgba(47, 95, 208, 0.28);
+}
+
+.sidebar__name {
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: var(--ls-tight);
+}
+
+.sidebar__tag {
+  font-size: var(--fs-2xs);
+  color: var(--c-text-subtle);
+  line-height: 1.4;
+}
+
+.sidebar__nav {
+  padding: 0 var(--sp-3) var(--sp-3);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.sidebar__group {
+  font-size: var(--fs-2xs);
+  font-weight: 600;
+  color: var(--c-text-subtle);
+  padding: var(--sp-5) var(--sp-3) var(--sp-2);
+  letter-spacing: var(--ls-wide);
+  text-transform: uppercase;
+}
+
+.nav-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: 7px var(--sp-3);
+  border-radius: var(--r-md);
+  color: var(--c-text-muted);
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  transition: background var(--dur-fast) var(--ease-inout),
+    color var(--dur-fast) var(--ease-inout);
+}
+
+.nav-item:hover {
+  background: rgba(28, 27, 25, 0.05);
+  color: var(--c-text);
+  text-decoration: none;
+}
+
+.nav-item.is-active {
+  background: var(--c-accent-soft);
+  color: var(--c-accent-text);
+  box-shadow: inset 0 0 0 1px var(--c-accent-border);
+  font-weight: 600;
+}
+
+.nav-item.is-active::before {
+  content: "";
+  position: absolute;
+  left: -12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 18px;
+  border-radius: 0 var(--r-full) var(--r-full) 0;
+  background: var(--c-accent);
+}
+
+.nav-item__icon {
+  width: 16px;
+  height: 16px;
+  flex: none;
+  opacity: 0.9;
+}
+
+.nav-item__count {
+  margin-left: auto;
+  font-size: var(--fs-2xs);
+  color: var(--c-text-subtle);
+  font-variant-numeric: tabular-nums;
+}
+
+.nav-item.is-active .nav-item__count {
+  color: var(--c-accent-text);
+}
+
+.sidebar__foot {
+  padding: var(--sp-4);
+  border-top: 1px solid var(--c-border);
+  font-size: var(--fs-2xs);
+  color: var(--c-text-subtle);
+  line-height: 1.7;
+}
+
+/* ---------------- Main ---------------- */
+.main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.topbar {
+  height: var(--topbar-h);
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: 0 var(--sp-8);
+  background: var(--c-glass);
+  backdrop-filter: saturate(1.6) blur(14px);
+  -webkit-backdrop-filter: saturate(1.6) blur(14px);
+  border-bottom: 1px solid var(--c-border);
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky);
+}
+
+.topbar__title {
+  font-size: var(--fs-md);
+  font-weight: 600;
+  letter-spacing: var(--ls-tight);
+}
+
+.topbar__right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+}
+
+.topbar__status {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: 4px var(--sp-3);
+  border-radius: var(--r-full);
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  font-size: var(--fs-2xs);
+  color: var(--c-text-muted);
+}
+
+.icon-btn {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-md);
+  background: var(--c-surface);
+  color: var(--c-text-muted);
+  box-shadow: var(--shadow-xs);
+}
+
+.icon-btn:hover {
+  background: var(--c-surface-alt);
+}
+
+.content {
+  flex: 1;
+  padding: var(--sp-7) var(--sp-8) var(--sp-12);
+  width: 100%;
+  max-width: var(--content-max);
+  margin: 0 auto;
+}
+
+/* ---------------- Drawer（移动端） ---------------- */
+.drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(31, 30, 28, 0.4);
+  z-index: var(--z-drawer);
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.drawer {
+  position: fixed;
+  inset: 0 auto 0 0;
+  width: min(276px, 84vw);
+  background: var(--c-bg-tint);
+  z-index: calc(var(--z-drawer) + 1);
+  display: flex;
+  flex-direction: column;
+  animation: slide-in var(--dur-base) var(--ease-out);
+  box-shadow: var(--shadow-xl);
+}
+
+@keyframes slide-in {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+/* ---------------- BottomNav（移动端） ---------------- */
+.bottom-nav {
+  display: none;
+  position: sticky;
+  bottom: 0;
+  z-index: var(--z-sticky);
+  background: var(--c-glass-strong);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-top: 1px solid var(--c-border);
+  padding: var(--sp-1) var(--sp-2);
+  padding-bottom: max(var(--sp-1), env(safe-area-inset-bottom));
+}
+
+.bottom-nav__list {
+  display: flex;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.bottom-nav__item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 6px var(--sp-1);
+  border-radius: var(--r-md);
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--c-text-subtle);
+}
+
+.bottom-nav__item.is-active {
+  color: var(--c-accent);
+}
+
+.bottom-nav__item:hover {
+  text-decoration: none;
+}
+
+/* ---------------- 响应式 ---------------- */
+@media (max-width: 1279px) {
+  .topbar {
+    padding: 0 var(--sp-6);
+  }
+
+  .content {
+    padding: var(--sp-6) var(--sp-6) var(--sp-10);
+  }
+}
+
+@media (max-width: 1023px) {
+  .topbar {
+    padding: 0 var(--sp-4);
+  }
+
+  .content {
+    padding: var(--sp-5) var(--sp-4) var(--sp-8);
+  }
+}
+
+@media (max-width: 767px) {
+  .sidebar {
+    display: none;
+  }
+
+  .icon-btn {
+    display: inline-flex;
+  }
+
+  .bottom-nav {
+    display: block;
+  }
+
+  .content {
+    padding: var(--sp-4) var(--sp-3) var(--sp-6);
+  }
+
+  .topbar__status span:last-child {
+    display: none;
+  }
+}
