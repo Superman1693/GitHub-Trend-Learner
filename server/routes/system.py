@@ -62,7 +62,25 @@ def overview(_req: Request) -> Response:
     )
 
 
+_openapi_cache: dict | None = None
+
+
+def openapi(_req: Request) -> Response:
+    """机器可读的接口清单（v1.8.2，CODE_REVIEW.md F11）。
+
+    路径与方法从路由表内省，因此永远与实现一致。结果进程内缓存。
+    """
+    global _openapi_cache
+    if _openapi_cache is None:
+        from ..app import build_router
+        from ..openapi import build_openapi
+
+        _openapi_cache = build_openapi(build_router().routes())
+    return json_response(_openapi_cache)
+
+
 def register(router: Router) -> None:
     router.get("/api/health", health)
     router.get("/api/system/config", config)
     router.get("/api/system/overview", overview)
+    router.get("/api/openapi.json", openapi)

@@ -12,6 +12,12 @@
 
 ### 新增
 
+- **接口清单 / OpenAPI**（`CODE_REVIEW.md` F11）：
+  - `server/openapi.py` 从 `Router` **内省**路径与方法，保证「文档里有的代码里一定有」；
+    配合人工维护的 `SUMMARIES` 表补充中文说明、查询参数与请求体；
+  - `GET /api/openapi.json` 返回 OpenAPI 3.1 文档（16 路径 / 17 操作）；
+  - `python main.py api-doc` 生成人读的 `API.md`；
+  - 漂移守卫测试：`API.md` 与当前路由表不一致时 CI 直接失败。
 - **产出文档批量导出**（`CODE_REVIEW.md` F6）：
   - `GET /api/documents/export[?date=YYYY-MM-DD]` 返回 ZIP（保留 `日期/文件名.md` 结构 +
     `MANIFEST.txt` 清单），响应头用 RFC 5987 双写文件名；
@@ -38,6 +44,8 @@
   `app/llm.py` 未使用的 `.log` 导入、`main.py` 未使用的 `pathlib.Path`、
   `app/classify.py` 未使用的局部变量 `name`。
 - 移除 `server/config.py` 中已无引用的六模块副本。
+- **移除误入库的 Vite 构建临时文件** `frontend/vite.config.ts.timestamp-*.mjs`
+  （含本机绝对路径），并在 `frontend/.gitignore` 加规则防复发。
 - `run_daily` 结束时自动清理超期缓存（无删除则不产生日志）。
 - 测试隔离：`conftest.py` 新增 autouse fixture，测试不再污染真实 `logs/`。
 

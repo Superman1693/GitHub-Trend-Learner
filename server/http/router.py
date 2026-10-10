@@ -67,3 +67,10 @@ class Router:
         return {
             r.method for r in self._routes if r.regex.match(path)
         }
+
+    def routes(self) -> list[tuple[str, str]]:
+        """已注册的 (method, pattern) 列表，供接口文档生成使用（v1.8.2）。
+
+        文档直接从路由表内省，保证「文档里有的路径代码里一定存在」。
+        """
+        return [(r.method, r.pattern) for r in self._routes]

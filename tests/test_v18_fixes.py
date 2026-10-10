@@ -122,6 +122,28 @@ def test_project_type_labels_cover_all_enum():
         assert t in project_type_label.__globals__["PROJECT_TYPE_LABELS"]
 
 
+def test_no_english_enum_leaks_in_labels():
+    """i18n 守卫（CODE_REVIEW.md F8）。
+
+    本项目不做完整 i18n 框架，而是「后端集中定义标签 + 经 API 下发」。
+    本测试保证：任何枚举值都有中文标签且不等于原值，
+    否则会以 `tool` / `yes` / `high` 这类英文原值泄漏到界面或产出文档
+    （F1 就是这样漏出去的）。
+    """
+    from app.classify import LABELS
+    from app.contracts import PROJECT_TYPE_LABELS, PROJECT_TYPES
+
+    missing = set(PROJECT_TYPES) - set(PROJECT_TYPE_LABELS)
+    assert not missing, f"项目类型缺中文标签：{sorted(missing)}"
+
+    for dim, mapping in LABELS.items():
+        for value, label in mapping.items():
+            assert label, f"{dim}.{value} 标签为空"
+            assert label != value, (
+                f"{dim}.{value} 未提供中文标签，会以英文原值泄漏到界面"
+            )
+
+
 # ---------------- D4：目录穿越 ----------------
 
 def test_static_path_guard_rejects_sibling_prefix():

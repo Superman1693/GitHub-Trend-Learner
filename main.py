@@ -7,6 +7,7 @@
   python main.py translate                      为候选池补齐中文描述（免费引擎，带缓存）
   python main.py cache [--dry-run] [--prune]    查看缓存占用；--prune 按保留期清理
   python main.py export [--date D] [--out F]    把产出文档打包成 ZIP
+  python main.py api-doc [--out F]              生成接口清单 API.md
   python main.py serve [--at HH:MM]             常驻模式：每日定时执行 daily
   python main.py doctor                         检查配置与网络
 
@@ -28,7 +29,7 @@ except Exception:
     pass
 
 from app import log
-from app.config import CACHE_DIR, LOGS_DIR, OUTPUTS_DIR, Settings
+from app.config import CACHE_DIR, LOGS_DIR, OUTPUTS_DIR, PROJECT_ROOT, Settings
 from app.orchestrator import Orchestrator
 
 
@@ -185,6 +186,23 @@ def cmd_export(args) -> int:
     return 0
 
 
+def cmd_api_doc(args) -> int:
+    """生成接口清单 `API.md`（CODE_REVIEW.md F11）。
+
+    路径与方法从路由表内省，因此不会与实现脱节；改完路由后重跑本命令即可。
+    """
+    from pathlib import Path
+
+    from server.app import build_router
+    from server.openapi import build_markdown
+
+    routes = build_router().routes()
+    out = Path(args.out) if args.out else PROJECT_ROOT / "API.md"
+    out.write_text(build_markdown(routes), encoding="utf-8")
+    log.console(f"[文档] 已生成 {len(routes)} 个接口的清单 -> {out}")
+    return 0
+
+
 def cmd_cache(args) -> int:
     """查看 / 清理缓存（CODE_REVIEW.md B7：cache/ 此前只增不减）。
 
@@ -251,6 +269,10 @@ def main(argv: list[str] | None = None) -> int:
     p_export.add_argument("--date", default=None, help="只导出指定日期 YYYY-MM-DD")
     p_export.add_argument("--out", default=None, help="输出文件路径（默认 outputs/ 下）")
     p_export.set_defaults(func=cmd_export)
+
+    p_api = sub.add_parser("api-doc", help="生成接口清单 API.md")
+    p_api.add_argument("--out", default=None, help="输出路径（默认项目根 API.md）")
+    p_api.set_defaults(func=cmd_api_doc)
 
     p_serve = sub.add_parser("serve", help="常驻模式：每日定时执行")
     p_serve.add_argument("--at", default="09:00", help="每日执行时刻 HH:MM（默认 09:00）")

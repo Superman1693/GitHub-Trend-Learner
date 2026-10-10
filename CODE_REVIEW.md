@@ -72,7 +72,9 @@
 | E3–E7 | ✅ 已修复 | 见 v1.8.2 |
 | F5 | ✅ 已修复 | 见 v1.8.2（文档全文检索） |
 | F6 | ✅ 已修复 | 见 v1.8.2（批量导出 ZIP：API + CLI + 前端按钮） |
-| F8/F11 | i18n 基建 / OpenAPI | 功能扩展，需排期 |
+| F11 | ✅ 已修复 | 见 v1.8.2（OpenAPI 3.1 + `API.md` + 漂移守卫测试） |
+| F8 | ✅ 务实方案 | 不引入 i18n 框架：标签集中定义在 `contracts`/`classify` 并经 API 下发，
+  新增守卫测试保证任何枚举值都有中文标签（防止 `tool`/`yes` 这类原值泄漏） |
 
 ### v1.8.2 追加修复（2026-10-10）
 
@@ -80,6 +82,8 @@
 | --- | --- | --- | --- |
 | F5 | ✅ 已修复 | `document_service.search_documents()` 全文检索 + `match_count`/`snippet`；前端防抖 300ms | 单测 8 项 + HTTP 实测 + 截图 |
 | F6 | ✅ 已修复 | `build_export_zip()` + `/api/documents/export` + `main.py export` + 前端「导出全部/当日」 | 单测 9 项 + HTTP 实测（ZIP 完整性校验）+ 前端校验 |
+| F11 | ✅ 已修复 | `server/openapi.py` 内省路由表生成 OpenAPI 3.1；`/api/openapi.json`；`main.py api-doc` 生成 `API.md` | 单测 9 项 + HTTP 实测（16 路径 / 17 操作）+ `API.md` 漂移守卫 |
+| F8 | ✅ 务实方案 | 标签集中到 `contracts`/`classify` 并经 API 下发；新增守卫测试 | 单测（枚举全覆盖且不等于原值） |
 | B7 | ✅ 已修复 | `app/maintenance.py` 按保留期清理；CLI `main.py cache --prune` | 单测 8 项 + CLI 实测 |
 | E3 | ✅ 已修复 | `requirements.lock`（pip freeze） | 文件校验 |
 | E4 | ✅ 已修复 | `requirements-dev.txt` | — |
@@ -88,7 +92,7 @@
 | E5（延伸） | ✅ 已修复 | `.gitattributes` 统一换行符 | — |
 | D1（部分） | ✅ 已修复 | `git init` + 2 次提交；`.gitignore` 补全 5 类大目录/敏感项 | `.git` 仅 691K，暂存 134 文件且密钥扫描通过 |
 
-**测试数量演进**：125（v1.8）→ 171（v1.8.1）→ 181 → 190 → **201**（v1.8.2 收尾）
+**测试数量演进**：125（v1.8）→ 171（v1.8.1）→ 181 → 190 → 201 → **211**（v1.8.2 收尾）
 
 ---
 
