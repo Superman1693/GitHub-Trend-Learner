@@ -25,6 +25,8 @@ jobs:
 
       - name: 单元测试 + 覆盖率
         # 阈值设为 80（当前 86%）：允许小幅波动，但阻止覆盖率明显回退
+        # 默认跳过 network 标记的真实网络测试（避免受对方限流/改版影响而误红）
+        # 需要时本地跑：pytest tests/ -m network
         run: pytest tests/ -q --cov --cov-report=term-missing --cov-fail-under=80
 
   frontend:

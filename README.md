@@ -220,7 +220,7 @@ docker compose --profile schedule up -d      # 每日 09:00 自动抓取 + 解�
 ## 文档状态
 
 - 文档版本：v1.9.0
-- 已就绪：`global.md`、`requirements.md`、`design.md`、`tasks.md`、`agent/*.md`（5 份）、`templates/*.md`（2 份）；流水线代码 `app/`、CLI `main.py`、后端 `server/`、前端 `frontend/`、测试 `tests/`（**521 项全部通过**）
+- 已就绪：`global.md`、`requirements.md`、`design.md`、`tasks.md`、`agent/*.md`（5 份）、`templates/*.md`（2 份）；流水线代码 `app/`、CLI `main.py`、后端 `server/`、前端 `frontend/`、测试 `tests/`（**527 项离线全通过** + 13 项真实网络 e2e）
 - 工程保障：`ruff.toml`（lint 全绿）、`.github/workflows/ci.yml`（含覆盖率阈值 80%）、`requirements-dev.txt`、`requirements.lock`、`.gitattributes`、`.coveragerc`、`Dockerfile` + `docker-compose.yml`
 - 接口清单：`API.md`（由 `python main.py api-doc` 从路由表内省生成）；机器可读版本见 `GET /api/openapi.json`
 - 决策事项：Q1–Q9 见 `requirements.md` §9 与 `tasks.md` 决策记录
@@ -229,3 +229,5 @@ docker compose --profile schedule up -d      # 每日 09:00 自动抓取 + 解�
 - 代码与文档已对齐六模块口径；仓库发现与两阶段解析见 `design.md` §16
 - 代码审查结论与整改记录见 `CODE_REVIEW.md`（全部 P0 与主要 P1 已修复）
 - 测试覆盖率 **90.9%**（`pytest --cov`，CI 阈值 80%）
+- 真实网络 e2e：`pytest tests/ -m network`（默认跳过，零 LLM 调用）
+- 真实网络 e2e：`pytest tests/ -m network`（默认跳过，零 LLM 调用）

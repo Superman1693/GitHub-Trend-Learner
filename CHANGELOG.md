@@ -51,6 +51,48 @@
 - 新增 `Router.delete()`；CORS `Allow-Methods` 补上 `DELETE`（收藏接口需要）。
 - 修正 `IconStar` 重复定义（改用共享 `STAR_PATH`）。
 
+### 修复（真实网络 e2e 挖出）
+
+- **搜索引擎相关性误判**（`app/search.py::_rank`）：`psf/requests` 的 owner `"psf"`
+  命中了光学名词「PSF（点扩散函数）」，8 条知乎/CSDN 光学文章被算作**相关结果**，
+  `degraded` 误报为 `False`——用户会把这些文章当成该仓库的摘要。
+  根因：`owner in blob` 这个**弱信号被当成了「相关」判据**。
+  修正：判定「相关」只认强信号（GitHub 域名 / 仓库名 ≥3 字符 / 完整 `owner/repo`），
+  owner 命中降级为**排序加分**。短仓库名（`jq`）另需完整 slug，避免 `"go"` 命中 `"google"`。
+  实测：`psf/requests`、`jqlang/jq` 现正确标记为宽泛匹配；`mattpocock/skills`、
+  `torvalds/linux` 仍正确识别为相关。
+
+### 测试
+
+- **真实网络端到端测试**（`tasks.md` T15 闭环）：新增 `tests/test_e2e_network.py`，
+  13 项，覆盖真实 GitHub API、榜单抓取、候选池管线、404 语义、无效链接、
+  超大仓库（linux）截断、搜索链路。**全部零 LLM**，不产生 token 费用。
+  默认跳过（`pytest.ini` 注册 `network` 标记 + `addopts = -m "not network"`），
+  用 `pytest tests/ -m network` 显式运行——真实网络测试既慢又受对方限流/改版影响，
+  放进 CI 必过门禁会变成「三天两头无故变红」，最终被无视。
+- 离线测试 521 → **527 项**；覆盖率保持 90.9%。
+
+### 修复（真实网络 e2e 挖出）
+
+- **搜索引擎相关性误判**（`app/search.py::_rank`）：`psf/requests` 的 owner `"psf"`
+  命中了光学名词「PSF（点扩散函数）」，8 条知乎/CSDN 光学文章被算作**相关结果**，
+  `degraded` 误报为 `False`——用户会把这些文章当成该仓库的摘要。
+  根因：`owner in blob` 这个**弱信号被当成了「相关」判据**。
+  修正：判定「相关」只认强信号（GitHub 域名 / 仓库名 ≥3 字符 / 完整 `owner/repo`），
+  owner 命中降级为**排序加分**。短仓库名（`jq`）另需完整 slug，避免 `"go"` 命中 `"google"`。
+  实测：`psf/requests`、`jqlang/jq` 现正确标记为宽泛匹配；`mattpocock/skills`、
+  `torvalds/linux` 仍正确识别为相关。
+
+### 测试
+
+- **真实网络端到端测试**（`tasks.md` T15 闭环）：新增 `tests/test_e2e_network.py`，
+  13 项，覆盖真实 GitHub API、榜单抓取、候选池管线、404 语义、无效链接、
+  超大仓库（linux）截断、搜索链路。**全部零 LLM**，不产生 token 费用。
+  默认跳过（`pytest.ini` 注册 `network` 标记 + `addopts = -m "not network"`），
+  用 `pytest tests/ -m network` 显式运行——真实网络测试既慢又受对方限流/改版影响，
+  放进 CI 必过门禁会变成「三天两头无故变红」，最终被无视。
+- 离线测试 521 → **527 项**；覆盖率保持 90.9%。
+
 ### 未执行
 
 - **Docker 镜像未实际构建**：当前开发机没有 Docker（WSL 亦被安全策略拦截）。

@@ -119,24 +119,43 @@ def _rank(results: list[SearchResult], full_name: str) -> tuple[list[SearchResul
 
     返回 (排序后的结果, 相关结果数)。相关数为 0 时调用方应标注「宽泛匹配」，
     避免用户把无关结果误当成该仓库的资料。
+
+    **判定「相关」只认强信号**：GitHub 域名，或标题/摘要出现仓库名（≥3 字符），
+    或出现完整 `owner/repo`。仅 owner 命中**不算相关**——短 owner 名会误命中同形词：
+    实测 `psf/requests` 的 owner "psf" 命中了光学名词「PSF（点扩散函数）」，
+    导致 8 条知乎/CSDN 光学文章被算作相关，`degraded` 误报为 False，
+    用户会把这些文章当成该仓库的摘要。
     """
     owner, _, repo = full_name.partition("/")
     repo_l, owner_l = repo.lower(), owner.lower()
+    slug = f"{owner_l}/{repo_l}" if owner_l and repo_l else ""
+
+    def _blob(r: SearchResult) -> str:
+        return f"{r.title} {r.snippet}".lower()
+
+    def is_relevant(r: SearchResult) -> bool:
+        if "github.com" in r.domain:
+            return True
+        blob = _blob(r)
+        if repo_l and len(repo_l) >= 3 and repo_l in blob:
+            return True
+        # 短仓库名（jq、go 之类）单独出现太容易误命中，要求完整 slug
+        return bool(slug) and slug in blob
 
     def score(r: SearchResult) -> int:
         s = 0
         if "github.com" in r.domain:
             s += 3
-        blob = f"{r.title} {r.snippet}".lower()
+        blob = _blob(r)
         if repo_l and len(repo_l) >= 2 and repo_l in blob:
             s += 2
-        # owner 可能是单字符（如 a/b），过短会命中任意单词，故要求长度 ≥3
+        # owner 命中仅作排序加分，不作为「相关」判据（见 docstring）
         if owner_l and len(owner_l) >= 3 and owner_l in blob:
             s += 1
         return s
 
     ranked = sorted(results, key=score, reverse=True)
-    relevant = [r for r in ranked if score(r) > 0]
+    relevant = [r for r in ranked if is_relevant(r)]
     return (relevant if len(relevant) >= 3 else ranked), len(relevant)
 
 

@@ -272,3 +272,69 @@ def test_github_fallback_omits_authorization_without_token(monkeypatch):
 
     search._github("a/b", limit=5, timeout=5)
     assert "Authorization" not in captured["headers"]
+
+
+# ---------------- 相关性判定：短 owner 名误命中（v1.9.0 真实缺陷）----------------
+
+def test_rank_owner_only_match_is_not_relevant():
+    """回归：`psf/requests` 的 owner "psf" 命中了光学名词「PSF」，把 8 条光学文章
+    算成相关结果，degraded 误报为 False —— 用户会把这些文章当成该仓库的摘要。
+
+    修正后：owner 命中只作排序加分，不作为「相关」判据。
+    """
+    optics = [
+        SearchResult("光学成像系统中的点扩散函数（PSF）：诞生、物理机制", "https://zhuanlan.zhihu.com/p/1", "PSF 详解", "zhuanlan.zhihu.com"),
+        SearchResult("点扩散函数 point spread function (PSF)", "https://blog.csdn.net/x", "PSF 与去卷积", "blog.csdn.net"),
+        SearchResult("点扩散函数_百度百科", "https://baike.baidu.com/item/PSF", "PSF 定义", "baike.baidu.com"),
+    ]
+    ranked, relevant = search._rank(optics, "psf/requests")
+    assert relevant == 0, "仅 owner 命中不应算相关"
+    assert len(ranked) == 3, "相关数为 0 时仍返回全部结果（避免面板空掉）"
+
+
+def test_rank_repo_name_match_is_relevant():
+    """仓库名命中仍是强信号。"""
+    results = [
+        SearchResult("GitHub - psf/requests", "https://github.com/psf/requests", "HTTP library", "github.com"),
+        SearchResult("requests 库入门", "https://blog.example.com/r", "requests 教程", "blog.example.com"),
+        SearchResult("python requests 用法", "https://x.com/r", "requests 详解", "x.com"),
+    ]
+    _, relevant = search._rank(results, "psf/requests")
+    assert relevant == 3
+
+
+def test_rank_full_slug_match_counts_for_short_repo_names():
+    """短仓库名（jq）单独出现太易误命中，要求完整 slug。"""
+    results = [
+        SearchResult("Minecraft 官网", "https://minecraft.net", "我的世界", "minecraft.net"),
+        SearchResult("jqlang/jq 使用指南", "https://blog.example.com/jq", "命令行 JSON", "blog.example.com"),
+        SearchResult("jqlang/jq 教程", "https://x.com/jq", "jq 详解", "x.com"),
+    ]
+    _, relevant = search._rank(results, "jqlang/jq")
+    assert relevant == 2, "完整 slug 命中的两条应算相关，Minecraft 那条不算"
+
+
+def test_rank_short_repo_name_alone_is_not_enough():
+    """仅 2 字符的仓库名出现在无关页面里，不应算相关。"""
+    results = [SearchResult("Google 搜索", "https://google.com", "go 语言", "google.com")]
+    _, relevant = search._rank(results, "someone/go")
+    assert relevant == 0, '"go" 出现在 "google" 里属于子串误命中'
+
+
+def test_rank_github_domain_always_relevant():
+    results = [SearchResult("GitHub - x/y", "https://github.com/x/y", "d", "github.com")]
+    _, relevant = search._rank(results, "x/y")
+    assert relevant == 1
+
+
+def test_search_repo_marks_broad_match_for_owner_collision(monkeypatch):
+    """端到端回归：owner 名撞上同形词时，整条链路必须标记为宽泛匹配。"""
+    monkeypatch.setattr(search, "_bing", lambda *a: [
+        SearchResult("光学成像中的点扩散函数（PSF）", "https://zhuanlan.zhihu.com/p/1", "PSF", "zhuanlan.zhihu.com"),
+        SearchResult("点扩散函数_百度百科", "https://baike.baidu.com/item/PSF", "PSF", "baike.baidu.com"),
+        SearchResult("PSF 与去卷积", "https://blog.csdn.net/x", "PSF", "blog.csdn.net"),
+    ])
+    out = search.search_repo("psf/requests", "Python HTTP library")
+    assert out.provider == "bing"
+    assert out.degraded is True, "全是无关结果时必须标记宽泛匹配"
+    assert "宽泛匹配" in out.note
