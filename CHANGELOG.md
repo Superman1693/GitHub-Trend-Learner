@@ -12,6 +12,12 @@
 
 ### 新增
 
+- **产出文档批量导出**（`CODE_REVIEW.md` F6）：
+  - `GET /api/documents/export[?date=YYYY-MM-DD]` 返回 ZIP（保留 `日期/文件名.md` 结构 +
+    `MANIFEST.txt` 清单），响应头用 RFC 5987 双写文件名；
+  - CLI：`python main.py export [--date D] [--out F]`；
+  - 前端文档页新增「导出全部 / 导出当日」按钮（随日期筛选联动）；
+  - 单次导出上限 300 份 / 64 MB，超限截断并在 MANIFEST 中注明。
 - **文档全文检索**（`CODE_REVIEW.md` F5）：`GET /api/documents?q=` 现在同时检索**正文**，
   返回 `match_count` 与上下文 `snippet`；前端文档页加 300ms 防抖，命中片段带左侧强调线展示。
   此前只匹配文件名与标题，正文关键词搜不到。

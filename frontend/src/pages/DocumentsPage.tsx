@@ -5,7 +5,7 @@ import { useDebounced } from '../hooks/useDebounced'
 import { useOverview } from '../hooks/useSystem'
 import { DocumentList } from '../components/documents/DocumentList'
 import { Button } from '../components/ui'
-import { IconRefresh, IconSearch } from '../components/ui/icons'
+import { IconDownload, IconRefresh, IconSearch } from '../components/ui/icons'
 import '../styles/pages.css'
 
 export function DocumentsPage() {
@@ -63,6 +63,17 @@ export function DocumentsPage() {
         <Button icon={<IconRefresh size={15} />} onClick={reload}>
           刷新
         </Button>
+
+        {/* 批量导出（v1.8）：直接走下载链接，避免把二进制塞进 fetch */}
+        <a
+          className="btn"
+          href={date ? `/api/documents/export?date=${encodeURIComponent(date)}` : '/api/documents/export'}
+          download
+          title={date ? `导出 ${date} 的全部文档为 ZIP` : '导出全部产出文档为 ZIP'}
+        >
+          <IconDownload size={15} />
+          {date ? '导出当日' : '导出全部'}
+        </a>
       </div>
 
       <DocumentList

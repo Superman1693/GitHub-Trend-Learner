@@ -145,3 +145,11 @@ export const IconFlame = (p: IconProps) => (
     <path d="M12 21a6 6 0 0 1-6-6c0-1.9.9-3.5 2-4.8" />
   </Base>
 )
+
+export const IconDownload = (p: IconProps) => (
+  <Base {...p}>
+    <path d="M12 3v12" />
+    <path d="m7 11 5 5 5-5" />
+    <path d="M4 20h16" />
+  </Base>
+)

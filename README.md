@@ -183,13 +183,16 @@ python main.py doctor                        # 检查配置
 python main.py repo https://github.com/owner/repo   # 解析任意仓库
 python main.py collect --pool 60             # 仅刷新候选池（抓取+打标+翻译，零 LLM）
 python main.py translate                     # 为候选池补齐中文描述（免费引擎，带缓存）
+python main.py cache --prune --dry-run       # 查看/清理缓存（先预演）
+python main.py export --date 2026-10-10      # 把产出文档打包成 ZIP
 python main.py daily                         # 抓取今日热门并归档/发邮件
 ```
 
 ## 文档状态
 
 - 文档版本：v1.8.2
-- 已就绪：`global.md`、`requirements.md`、`design.md`、`tasks.md`、`agent/*.md`（5 份）、`templates/*.md`（2 份）；流水线代码 `app/`、CLI `main.py`、后端 `server/`、前端 `frontend/`、测试 `tests/`（**171 项全部通过**）
+- 已就绪：`global.md`、`requirements.md`、`design.md`、`tasks.md`、`agent/*.md`（5 份）、`templates/*.md`（2 份）；流水线代码 `app/`、CLI `main.py`、后端 `server/`、前端 `frontend/`、测试 `tests/`（**201 项全部通过**）
+- 工程保障：`ruff.toml`（lint 全绿）、`.github/workflows/ci.yml`、`requirements-dev.txt`、`requirements.lock`、`.gitattributes`
 - 决策事项：Q1–Q9 见 `requirements.md` §9 与 `tasks.md` 决策记录
 - 数据读取：GitHub REST API 直连（`github.com/trending` 多入口聚合主方案 + Search API 降级）
 - 描述翻译：免费翻译引擎 + 内容寻址缓存（不消耗 LLM）

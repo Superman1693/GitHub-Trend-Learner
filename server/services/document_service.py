@@ -42,6 +42,11 @@ class DocumentMeta:
     module_count: int
 
 
+def is_valid_date(value: str) -> bool:
+    """校验 `YYYY-MM-DD` 形式的日期目录名（供路由层做入参校验）。"""
+    return bool(_DATE_DIR.match(value or ""))
+
+
 def _safe_path(date: str, name: str) -> Path | None:
     """把 (date, name) 解析到 outputs 内，越界或非法返回 None。
 
@@ -198,6 +203,64 @@ def search_documents(query: str, max_results: int = 500) -> list[dict]:
         })
     hits.sort(key=lambda h: (-h["match_count"], h["date"], h["name"]))
     return hits[:max_results]
+
+
+MAX_EXPORT_FILES = 300
+MAX_EXPORT_BYTES = 64 * 1024 * 1024      # 单次导出上限，防止一次性读爆内存
+
+
+def build_export_zip(date: str | None = None) -> tuple[bytes | None, str, str]:
+    """把产出文档打包成 ZIP（CODE_REVIEW.md F6：此前只能逐份打开）。
+
+    返回 `(zip 字节, 建议文件名, 说明)`；无可导出内容时字节为 None。
+    保留 `日期/文件名.md` 目录结构，并附一份 MANIFEST.txt 说明导出范围。
+    """
+    import io
+    import zipfile
+
+    docs = list_documents()
+    if date:
+        docs = [d for d in docs if d["date"] == date]
+    if not docs:
+        return None, "", "没有匹配的产出文档"
+
+    truncated = len(docs) > MAX_EXPORT_FILES
+    docs = docs[:MAX_EXPORT_FILES]
+
+    buffer = io.BytesIO()
+    total_bytes = 0
+    included: list[str] = []
+    with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as zf:
+        for item in docs:
+            path = OUTPUTS_DIR / item["date"] / item["name"]
+            try:
+                data = path.read_bytes()
+            except OSError:
+                continue
+            if total_bytes + len(data) > MAX_EXPORT_BYTES:
+                truncated = True
+                break
+            total_bytes += len(data)
+            zf.writestr(f"{item['date']}/{item['name']}", data)
+            included.append(f"{item['date']}/{item['name']}")
+
+        manifest = [
+            "GitHub-Trend-Learner 产出导出",
+            f"导出范围：{date or '全部日期'}",
+            f"文档数量：{len(included)}",
+            f"生成时间：{datetime.now():%Y-%m-%d %H:%M}",
+            "",
+            "包含文件：",
+            *[f"  - {name}" for name in included],
+        ]
+        if truncated:
+            manifest.append("")
+            manifest.append("注意：内容超出单次导出上限，本次仅导出部分文档。")
+        zf.writestr("MANIFEST.txt", "\n".join(manifest))
+
+    filename = f"github-trend-learner-{date or 'all'}.zip"
+    note = f"已打包 {len(included)} 份文档" + ("（超出上限已截断）" if truncated else "")
+    return buffer.getvalue(), filename, note
 
 
 def stats() -> dict:

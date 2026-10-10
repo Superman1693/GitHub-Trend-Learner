@@ -6,6 +6,7 @@
   python main.py collect [--pool N]             仅刷新候选池（抓取+打标+翻译，零 LLM）
   python main.py translate                      为候选池补齐中文描述（免费引擎，带缓存）
   python main.py cache [--dry-run] [--prune]    查看缓存占用；--prune 按保留期清理
+  python main.py export [--date D] [--out F]    把产出文档打包成 ZIP
   python main.py serve [--at HH:MM]             常驻模式：每日定时执行 daily
   python main.py doctor                         检查配置与网络
 
@@ -162,6 +163,28 @@ def cmd_doctor(_args) -> int:
     return 0
 
 
+def cmd_export(args) -> int:
+    """把产出文档打包成 ZIP（CODE_REVIEW.md F6）。
+
+    复用 `server.services.document_service.build_export_zip`，保证 CLI 与
+    `/api/documents/export` 的打包结果一致（目录结构、MANIFEST、上限策略）。
+    """
+    from pathlib import Path
+
+    from server.services import document_service
+
+    data, filename, note = document_service.build_export_zip(args.date)
+    if data is None:
+        log.console(f"[导出] {note}")
+        return 1
+
+    out = Path(args.out) if args.out else OUTPUTS_DIR / filename
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_bytes(data)
+    log.console(f"[导出] {note}（{len(data) / 1024:.1f} KB）-> {out}")
+    return 0
+
+
 def cmd_cache(args) -> int:
     """查看 / 清理缓存（CODE_REVIEW.md B7：cache/ 此前只增不减）。
 
@@ -223,6 +246,11 @@ def main(argv: list[str] | None = None) -> int:
     p_cache.add_argument("--trending-keep-days", type=int, default=30,
                          help="榜单快照保留天数（默认 30）")
     p_cache.set_defaults(func=cmd_cache)
+
+    p_export = sub.add_parser("export", help="把产出文档打包成 ZIP")
+    p_export.add_argument("--date", default=None, help="只导出指定日期 YYYY-MM-DD")
+    p_export.add_argument("--out", default=None, help="输出文件路径（默认 outputs/ 下）")
+    p_export.set_defaults(func=cmd_export)
 
     p_serve = sub.add_parser("serve", help="常驻模式：每日定时执行")
     p_serve.add_argument("--at", default="09:00", help="每日执行时刻 HH:MM（默认 09:00）")
