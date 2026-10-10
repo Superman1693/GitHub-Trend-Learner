@@ -110,6 +110,16 @@
 
 ### 变更
 
+- **性能优化**（`CODE_REVIEW.md` B3/B4/B5/B6/B8）：
+  - **B8 前端分包**：页面改为路由级懒加载 + `manualChunks` 拆出 `react-vendor` 与 `markdown`。
+    首屏从「单个 286 KB（gzip 94.5 KB）」降到「`index` 20.5 KB + `react-vendor` 163 KB」
+    （gzip 8.1 + 53.3 KB）；`markdown`（66 KB）只在打开文档详情时才加载。
+  - **B3** 服务端复用进程级 `GitHubClient`（此前每次候选详情请求都新建 `requests.Session`）。
+  - **B4** 搜索模块改用模块级 `requests.Session`（复用连接，省去每次 TCP/TLS 握手）。
+  - **B5** `prompts` 的 `_read`/`load_global`/`load_agent` 加 `lru_cache`
+    （每日任务此前对 N 个仓库各重读 3 次磁盘）。
+  - **B6** `Settings.load()` 加进程内缓存（此前位于搜索预览、运行配置等热点路径），
+    新增 `Settings.invalidate()`；`conftest.py` 每测试清空以保证隔离。
 - `contracts.PROJECT_TYPES` 补齐 `resource`，`PROJECT_TYPE_LABELS` 与 `project_type_label()` 收敛到此，
   `classify` / `analyst` / `render` 全部引用同一来源（消除 3 套矛盾口径）。
 

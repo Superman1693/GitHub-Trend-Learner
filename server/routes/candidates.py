@@ -9,10 +9,29 @@
 """
 from __future__ import annotations
 
+import threading
+
 from app import candidates, classify, search
+from app.config import Settings
+from app.github_client import GitHubClient
 
 from ..http import Request, Response, Router, error, json_response
 from ..services import task_service
+
+# 进程级复用的 GitHub 客户端（v1.8.2，CODE_REVIEW.md B3）。
+# 此前每次详情请求都新建 GitHubClient（即新的 requests.Session），
+# 既无法复用连接，也白白重解析一次 .env。
+_CLIENT: GitHubClient | None = None
+_CLIENT_LOCK = threading.Lock()
+
+
+def _client() -> GitHubClient:
+    global _CLIENT
+    if _CLIENT is None:
+        with _CLIENT_LOCK:
+            if _CLIENT is None:
+                _CLIENT = GitHubClient(token=Settings.load().github_token)
+    return _CLIENT
 
 
 def _int(value: str | None) -> int | None:
@@ -67,10 +86,7 @@ def candidate_detail(req: Request) -> Response:
     # 详情页补一次目录树，让「是否可部署」判定更准（Req13.2 的判定理由更可靠）
     tree: list[str] = []
     try:
-        from app.config import Settings
-        from app.github_client import GitHubClient
-
-        client = GitHubClient(token=Settings.load().github_token)
+        client = _client()
         branch = client.get_repo(full_name).get("default_branch") or "main"
         tree, _ = client.get_tree(full_name, branch)
     except Exception:  # noqa: BLE001 - 拿不到目录树时保留元数据判定结果

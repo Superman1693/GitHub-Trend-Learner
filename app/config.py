@@ -66,6 +66,10 @@ def _env_int(name: str, default: int) -> int:
         return default  # 非法数字按默认值处理，不让进程崩溃
 
 
+# Settings.load() 的进程内缓存：键为 env_path（None 表示默认 .env）
+_SETTINGS_CACHE: dict[str | None, "Settings"] = {}
+
+
 @dataclass
 class Settings:
     github_token: str | None
@@ -94,9 +98,20 @@ class Settings:
 
     @classmethod
     def load(cls, env_path: Path | None = None) -> "Settings":
+        """读取配置（**进程内缓存**）。
+
+        `Settings.load()` 位于若干热点路径（每次搜索预览、每次取运行配置），
+        此前每次都重新解析 `.env` 文件。缓存以 `env_path` 为键；
+        环境变量或 `.env` 变更后调用 `Settings.invalidate()` 即可刷新。
+        """
+        key = str(env_path) if env_path is not None else None
+        cached = _SETTINGS_CACHE.get(key)
+        if cached is not None:
+            return cached
+
         load_env(env_path)
         mail_to_raw = _env("MAIL_TO") or ""
-        return cls(
+        settings = cls(
             github_token=_env("GITHUB_TOKEN"),
             llm_base_url=_env("LLM_BASE_URL"),
             llm_api_key=_env("LLM_API_KEY"),
@@ -113,3 +128,10 @@ class Settings:
             max_retries=3,
             max_gate_returns=2,
         )
+        _SETTINGS_CACHE[key] = settings
+        return settings
+
+    @classmethod
+    def invalidate(cls) -> None:
+        """清空配置缓存（测试隔离、配置热更新用）。"""
+        _SETTINGS_CACHE.clear()

@@ -33,6 +33,11 @@ _BING_SNIP = re.compile(r"<p[^>]*>(.*?)</p>", re.S)
 _TAGS = re.compile(r"<[^>]+>")
 _BING_REDIRECT = re.compile(r"[?&]u=a1([^&]+)")
 
+# 复用连接的 Session：一次预览会串行发 1–3 个请求，
+# 用模块级 Session 可省掉每次的 TCP/TLS 握手（v1.8.2，CODE_REVIEW.md B4）。
+_SESSION = requests.Session()
+_SESSION.headers.update(UA)
+
 
 @dataclass
 class SearchResult:
@@ -136,10 +141,9 @@ def _rank(results: list[SearchResult], full_name: str) -> tuple[list[SearchResul
 
 
 def _bing(query: str, limit: int, timeout: int) -> list[SearchResult]:
-    resp = requests.get(
+    resp = _SESSION.get(
         "https://www.bing.com/search",
         params={"q": query, "count": max(limit, 10)},
-        headers=UA,
         timeout=timeout,
     )
     resp.raise_for_status()
@@ -165,12 +169,11 @@ def _github(full_name: str, limit: int, timeout: int) -> list[SearchResult]:
     from .config import Settings
 
     token = Settings.load().github_token
-    headers = dict(UA)
-    headers["Accept"] = "application/vnd.github+json"
+    headers = {"Accept": "application/vnd.github+json"}
     if token:
         headers["Authorization"] = f"Bearer {token}"
 
-    resp = requests.get(
+    resp = _SESSION.get(
         "https://api.github.com/search/repositories",
         params={"q": full_name, "per_page": limit},
         headers=headers,

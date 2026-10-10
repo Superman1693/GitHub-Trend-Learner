@@ -10,6 +10,11 @@ def _isolate_runtime_dirs(tmp_path, monkeypatch):
     `logs/run-YYYYMMDD.jsonl`，把单元测试的事件混进真实运行日志。
     """
     from app import log
+    from app.config import Settings
 
     monkeypatch.setattr(log, "LOGS_DIR", tmp_path / "logs")
+    # Settings.load() 有进程内缓存（v1.8.2），每个测试前清空，
+    # 保证 monkeypatch.setenv 的结果一定被读到
+    Settings.invalidate()
     yield
+    Settings.invalidate()

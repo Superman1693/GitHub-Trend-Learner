@@ -57,6 +57,11 @@
 | A3 | ✅ 已修复 | `app.__version__` 单一来源 | 单测 + HTTP 实测（`GTL/1.8.0`） |
 | A4 | ✅ 已修复 | `orchestrator` 复用 `config.CACHE_DIR` | 代码审查 |
 | A5 | ✅ 已修复 | 死代码清理：删 `quote_query`、`run_gate` 的 `html_url` 参数、`_head_sha` 包装、前端 `useCandidateDetail` 链路；`build_query` 改为被 `search_repo` 复用 | 单测（含生产路径回归）+ 前端构建 |
+| B3 | ✅ 已修复 | 服务端复用进程级 `GitHubClient` | 代码审查 |
+| B4 | ✅ 已修复 | `app/search.py` 改用模块级 `requests.Session` | 单测（mock `_bing` 仍通过） |
+| B5 | ✅ 已修复 | `app/prompts.py` 加 `lru_cache` | 单测 |
+| B6 | ✅ 已修复 | `Settings.load()` 加进程内缓存 + `invalidate()`；conftest 每测试清空 | 单测（212 项仍全通过） |
+| B8 | ✅ 已修复 | 路由级懒加载 + `manualChunks` 拆 `react-vendor`/`markdown` | 构建产物比对 + 浏览器实测各页面按需加载 |
 | F3 | ✅ 已修复 | `POST /api/tasks/{id}/retry` + 任务中心「重试此任务」 | HTTP + 前端截图 |
 | F4 | ✅ 已修复 | 任务持久化到 `cache/tasks.json` | 单测 + 实测文件落盘 |
 | F9/F10 | ✅ 已修复 | 新增 46 项测试（translate / task_service / v18 回归） | 171 passed |
@@ -94,6 +99,8 @@
 | D1（部分） | ✅ 已修复 | `git init` + 2 次提交；`.gitignore` 补全 5 类大目录/敏感项 | `.git` 仅 691K，暂存 134 文件且密钥扫描通过 |
 
 **测试数量演进**：125（v1.8）→ 171（v1.8.1）→ 181 → 190 → 201 → 211 → **212**（v1.8.2 收尾）
+
+**B 组性能项进度**：B1 ✅ / B2 ✅ / B3 ✅ / B4 ✅ / B5 ✅ / B6 ✅ / B7 ✅ / B8 ✅ —— **8/8 全部完成**
 
 ---
 

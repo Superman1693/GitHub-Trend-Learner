@@ -5,17 +5,28 @@
 """
 from __future__ import annotations
 
+from functools import lru_cache
+
 from .config import PROJECT_ROOT
 
 
+@lru_cache(maxsize=16)
 def _read(rel: str) -> str:
+    """读取提示词资产（**进程内缓存**）。
+
+    每日任务会对 N 个仓库各调用 3 次 `*_system()`，此前每次都重读
+    `global.md` 与 `agent/*.md`（3N 次磁盘 IO）。这些文件在进程生命周期内不变，
+    缓存安全；测试若需改动文件内容，调用 `_read.cache_clear()` 即可。
+    """
     return (PROJECT_ROOT / rel).read_text(encoding="utf-8")
 
 
+@lru_cache(maxsize=8)
 def load_global() -> str:
     return _read("global.md")
 
 
+@lru_cache(maxsize=8)
 def load_agent(name: str) -> str:
     return _read(f"agent/{name}.md")
 
