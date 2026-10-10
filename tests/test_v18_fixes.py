@@ -11,16 +11,13 @@
 """
 from __future__ import annotations
 
-from pathlib import Path
-
 import pytest
 
 from app import render, static_check
 from app.agents.deploy import build_m5
 from app.config import _parse_value
-from app.contracts import FinalDoc, MODULES_ORDER, RepoMeta, project_type_label
+from app.contracts import MODULES_ORDER, FinalDoc, RepoMeta, project_type_label
 from app.github_client import GitHubClient, RepoNotFound
-
 
 # ---------------- C1：静态校验 ----------------
 
@@ -113,7 +110,7 @@ def _final(project_type: str) -> FinalDoc:
                                    "resource", "unknown"])
 def test_render_project_type_is_chinese(ptype):
     doc = render.render_final_doc(_meta(), _final(ptype))
-    line = next(l for l in doc.splitlines() if l.startswith("> 项目类型："))
+    line = next(ln for ln in doc.splitlines() if ln.startswith("> 项目类型："))
     value = line.split("：", 1)[1]
     assert value == project_type_label(ptype)
     assert value not in ("", ptype), f"项目类型未中文化：{value}"
@@ -172,9 +169,9 @@ def test_invalid_port_falls_back(monkeypatch, capsys):
 # ---------------- C9：路径参数解码 ----------------
 
 def test_router_decodes_path_params():
-    from server.http.router import Router
     from server.http.request import Request
     from server.http.response import json_response
+    from server.http.router import Router
 
     router = Router()
     router.get("/api/documents/{date}/{name}",

@@ -1,8 +1,8 @@
 """输入路由（Req8）与链接解析（含深链接截取）。"""
 import pytest
 
-from app.orchestrator import Orchestrator
 from app.agents.collector import InvalidURL, resolve_full_name
+from app.orchestrator import Orchestrator
 
 
 @pytest.fixture(scope="module")

@@ -12,10 +12,9 @@ from __future__ import annotations
 
 import json
 
+from .. import log, prompts, static_check
 from ..contracts import DeployPlan, DraftDoc, RepoMeta
-from .. import log
 from ..llm import LLMClient, LLMError
-from .. import prompts, static_check
 
 _PLATFORM_TITLE = (("windows", "Windows"), ("macos", "macOS"), ("linux", "Linux"))
 

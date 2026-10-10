@@ -7,10 +7,9 @@ from __future__ import annotations
 
 import json
 
+from .. import log, prompts
 from ..contracts import PROJECT_TYPES, DraftDoc, RepoMeta
-from .. import log
 from ..llm import LLMClient, LLMError
-from .. import prompts
 
 
 def build_user_payload(meta: RepoMeta) -> str:

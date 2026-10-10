@@ -10,10 +10,9 @@ from __future__ import annotations
 import json
 from datetime import datetime
 
+from .. import log, prompts, quality_gate
 from ..contracts import DeployPlan, DraftDoc, FinalDoc, RepoMeta, merge_modules
-from .. import log
 from ..llm import LLMClient
-from .. import prompts, quality_gate
 
 
 def run(llm: LLMClient, meta: RepoMeta, draft: DraftDoc, plan: DeployPlan,

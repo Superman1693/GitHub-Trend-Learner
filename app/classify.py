@@ -156,7 +156,6 @@ def classify(
     列表页不传（省一次 API 调用），详情页传入。
     """
     topics = [t for t in (topics or []) if t]
-    name = (full_name or "").split("/")[-1]
     desc = description or ""
     blob = _blob(full_name, desc, topics)
     reasons: dict[str, list[str]] = {}

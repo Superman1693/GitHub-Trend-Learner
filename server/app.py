@@ -12,11 +12,12 @@ import sys
 import traceback
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
+from app import __version__ as APP_VERSION
+
 from .config import ServerConfig
 from .http import Request, Response, Router, error
 from .http.static import serve_static
 from .routes import register as register_routes
-from app import __version__ as APP_VERSION
 
 # 请求体上限：本地工具不需要接收大 body，防止 Content-Length 被放大导致内存耗尽（v1.8）
 MAX_BODY_BYTES = 1024 * 1024  # 1 MB

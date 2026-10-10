@@ -10,9 +10,9 @@ from __future__ import annotations
 import re
 from datetime import datetime
 
+from .. import log
 from ..contracts import RepoMeta
 from ..github_client import GitHubClient
-from .. import log
 from ..selection import aggregate_tree, select_core_files, trim_readme
 
 URL_RE = re.compile(r"^https?://(www\.)?github\.com/([\w.-]+)/([\w.-]+)/?$")

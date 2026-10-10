@@ -1,0 +1,6 @@
+# 开发/测试依赖（CODE_REVIEW.md E4：此前 pytest 只写在注释里，新机器与 CI 装不上）
+# 用法：pip install -r requirements-dev.txt
+-r requirements.txt
+
+pytest>=8,<10
+ruff>=0.6

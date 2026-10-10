@@ -8,8 +8,6 @@ import os
 from dataclasses import dataclass
 from pathlib import Path
 
-from app.contracts import MODULES_ORDER as MODULE_ORDER  # 六模块口径的唯一来源
-
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 FRONTEND_DIR = PROJECT_ROOT / "frontend"
 FRONTEND_DIST = FRONTEND_DIR / "dist"
@@ -17,8 +15,8 @@ OUTPUTS_DIR = PROJECT_ROOT / "outputs"
 LOGS_DIR = PROJECT_ROOT / "logs"
 CACHE_DIR = PROJECT_ROOT / "cache"
 
-# 说明：六模块标识（含「一、」等序号）统一定义在 app/contracts.MODULES_ORDER，
-# 此处只做再导出。v1.8 之前这里有一份独立副本，改口径时需人工同步，已收敛。
+# 说明：六模块标识（含「一、」等序号）统一定义在 app/contracts.MODULES_ORDER。
+# v1.8 之前这里有一份独立副本，改口径时需人工同步；现已删除，需要时直接从 contracts 引用。
 
 
 def _int_env(name: str, default: int) -> int:

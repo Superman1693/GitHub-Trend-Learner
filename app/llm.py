@@ -10,8 +10,6 @@ import time
 
 import requests
 
-from . import log
-
 
 class LLMNotConfigured(Exception):
     """LLM 三要素未配置齐。"""

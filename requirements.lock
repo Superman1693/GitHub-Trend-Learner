@@ -1,0 +1,8 @@
+# 运行期依赖的精确锁定（CODE_REVIEW.md E3）。
+# 由 `pip freeze` 生成，用于可复现部署：pip install -r requirements.lock
+# 仅含 requests 及其传递依赖；开发工具见 requirements-dev.txt。
+certifi==2026.7.22
+charset-normalizer==3.5.2
+idna==3.20
+requests==2.34.2
+urllib3==2.8.0

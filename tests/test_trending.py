@@ -1,5 +1,4 @@
 """trending 页面解析与多入口聚合（design.md §6.2 主方案）——离线夹具测试。"""
-import pytest
 
 from app import trending
 from app.trending import _merge_into, _rank_repos, fetch_trending, parse_trending_html

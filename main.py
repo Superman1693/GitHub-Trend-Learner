@@ -5,6 +5,7 @@
   python main.py repo <URL|owner/repo>          解析指定仓库
   python main.py collect [--pool N]             仅刷新候选池（抓取+打标+翻译，零 LLM）
   python main.py translate                      为候选池补齐中文描述（免费引擎，带缓存）
+  python main.py cache [--dry-run] [--prune]    查看缓存占用；--prune 按保留期清理
   python main.py serve [--at HH:MM]             常驻模式：每日定时执行 daily
   python main.py doctor                         检查配置与网络
 
@@ -16,7 +17,6 @@ import argparse
 import sys
 import time
 from datetime import date, datetime, timedelta
-from pathlib import Path
 
 # Windows 控制台中文输出兜底
 try:
@@ -26,8 +26,8 @@ try:
 except Exception:
     pass
 
-from app.config import CACHE_DIR, LOGS_DIR, OUTPUTS_DIR, Settings
 from app import log
+from app.config import CACHE_DIR, LOGS_DIR, OUTPUTS_DIR, Settings
 from app.orchestrator import Orchestrator
 
 
@@ -162,6 +162,38 @@ def cmd_doctor(_args) -> int:
     return 0
 
 
+def cmd_cache(args) -> int:
+    """查看 / 清理缓存（CODE_REVIEW.md B7：cache/ 此前只增不减）。
+
+    不带 `--prune` 只统计占用；`--prune` 按保留期删除可再生数据（建议先 `--dry-run` 预演）。
+    """
+    from app import maintenance
+
+    files = sorted(CACHE_DIR.glob("*.json")) if CACHE_DIR.is_dir() else []
+    total = sum(f.stat().st_size for f in files)
+    log.console(f"[缓存] {CACHE_DIR}：{len(files)} 个文件，共 {total / 1024:.1f} KB")
+
+    if not args.prune:
+        for f in files[:12]:
+            log.console(f"    {f.name}  {f.stat().st_size / 1024:.1f} KB")
+        if len(files) > 12:
+            log.console(f"    …另有 {len(files) - 12} 个文件")
+        log.console("  加 --prune 可清理超期数据（建议先加 --dry-run 预演）")
+        return 0
+
+    report = maintenance.prune_cache(
+        CACHE_DIR,
+        repo_keep_days=args.repo_keep_days,
+        trending_keep_days=args.trending_keep_days,
+        dry_run=args.dry_run,
+    )
+    log.console("  " + maintenance.summarize(report))
+    if args.dry_run:
+        for name in (report["repo_removed"] + report["trending_removed"])[:10]:
+            log.console(f"    将删除 {name}")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="github-trend-learner",
                                      description="GitHub 热门仓库 AI 学习助手（六模块新手解读）")
@@ -182,6 +214,15 @@ def main(argv: list[str] | None = None) -> int:
 
     p_translate = sub.add_parser("translate", help="为候选池补齐中文描述（免费引擎，带缓存）")
     p_translate.set_defaults(func=cmd_translate)
+
+    p_cache = sub.add_parser("cache", help="查看缓存占用；--prune 按保留期清理")
+    p_cache.add_argument("--prune", action="store_true", help="执行清理（默认只统计）")
+    p_cache.add_argument("--dry-run", action="store_true", help="只预演，不实际删除")
+    p_cache.add_argument("--repo-keep-days", type=int, default=90,
+                         help="解析结果保留天数（默认 90）")
+    p_cache.add_argument("--trending-keep-days", type=int, default=30,
+                         help="榜单快照保留天数（默认 30）")
+    p_cache.set_defaults(func=cmd_cache)
 
     p_serve = sub.add_parser("serve", help="常驻模式：每日定时执行")
     p_serve.add_argument("--at", default="09:00", help="每日执行时刻 HH:MM（默认 09:00）")

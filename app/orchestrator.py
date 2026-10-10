@@ -16,12 +16,12 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import date, datetime
 from pathlib import Path
 
+from . import candidates, log, mailer, maintenance, render, translate, trending
 from .agents import analyst, collector, deploy, tutor
 from .cache import Cache
 from .config import CACHE_DIR, MAX_AUTO_PARSE, OUTPUTS_DIR, Settings
 from .contracts import TaskEnvelope
 from .github_client import GitHubClient, RepoNotFound
-from . import candidates, log, mailer, render, translate, trending
 
 HELP_TEXT = """我能听懂这些输入：
 1. GitHub 仓库链接（如 https://github.com/owner/repo）—— 生成六模块新手解读；
@@ -278,6 +278,13 @@ class Orchestrator:
                         + (f"，清理超期快照 {len(removed)} 份" if removed else ""))
         except Exception as exc:  # noqa: BLE001 - 候选池失败不应中断解析
             log.console(f"  [候选池] 写入失败（不影响后续解析）：{exc}")
+
+        # 缓存维护：按保留期清理可再生的解析结果与榜单快照，避免 cache/ 无限膨胀
+        # （CODE_REVIEW.md B7；删除的只是缓存，下次运行会重新生成）
+        try:
+            maintenance.auto_prune(CACHE_DIR)
+        except Exception as exc:  # noqa: BLE001 - 维护失败不应中断解析
+            log.console(f"  [缓存] 清理失败（不影响后续解析）：{exc}")
 
         # 仅对 Top N 调用 LLM 生成六模块文档（控制成本）
         to_parse = repos[:top_n]

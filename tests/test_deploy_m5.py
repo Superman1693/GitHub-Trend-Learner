@@ -6,9 +6,10 @@ LLM 生成的 `env_requirements`（逐项安装教程）与 `steps`（分系统�
 
 本测试锁定修复后的行为：结构化字段必须全部渲染进 M5 正文，且不含任何占位符。
 """
+import re
+
 from app.agents.deploy import build_m5
 from app.quality_gate import PLACEHOLDER_PATTERNS, run_gate
-import re
 
 
 def _sample() -> tuple[list[dict], dict, str, list[dict], list[str]]:

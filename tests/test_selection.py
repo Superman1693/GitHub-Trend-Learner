@@ -1,6 +1,5 @@
 """核心文件筛选（design.md §5.6）与上下文裁剪（§8.3）。"""
-from app.selection import (aggregate_tree, select_core_files, trim_readme,
-                           MAX_FILE_LINES)
+from app.selection import MAX_FILE_LINES, aggregate_tree, select_core_files, trim_readme
 
 TREE = [
     "README.md",

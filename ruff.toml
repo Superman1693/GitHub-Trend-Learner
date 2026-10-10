@@ -1,0 +1,27 @@
+# Ruff 配置（CODE_REVIEW.md E6：此前无任何 lint/format 配置）
+# 用法：ruff check .   /   ruff format .
+line-length = 100
+target-version = "py311"
+
+exclude = [
+  ".venv",
+  "node_modules",
+  "frontend/dist",
+  "_backup_v1.5_20261008",
+  "cache",
+  "outputs",
+  "logs",
+]
+
+[lint]
+# 只启用「能抓到真实缺陷」的规则集，避免风格噪声淹没真问题：
+#   E/W = pycodestyle 错误与警告，F = pyflakes（未使用导入/未定义名），I = isort
+select = ["E", "W", "F", "I"]
+ignore = [
+  "E501",  # 行长由 formatter 负责
+  "E402",  # 本项目存在「先常量后导入」的刻意写法
+  "E731",  # 允许轻量 lambda 赋值
+]
+
+[lint.isort]
+known-first-party = ["app", "server"]
