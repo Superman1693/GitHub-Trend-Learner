@@ -1,6 +1,6 @@
 # 控制台 API 清单
 
-- 版本：v1.8.2
+- 版本：v1.8.3
 - 本文件由 `python main.py api-doc` 从路由表内省生成，请勿手工编辑。
 - 共 17 个接口；机器可读版本见 `GET /api/openapi.json`。
 - 统一错误结构：`{"error": {"code": "...", "message": "..."}}`

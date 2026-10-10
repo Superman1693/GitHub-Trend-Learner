@@ -50,8 +50,12 @@ class Router:
 
     def match(self, method: str, path: str) -> tuple[Handler, dict[str, str]] | None:
         method = method.upper()
+        # HEAD 语义等同 GET（RFC 9110 §9.3.2：仅不返回消息体）。
+        # 此前 HEAD 因未注册而一律 405，与 `server/app.py` 里 `_write` 对 HEAD 的
+        # 专门处理自相矛盾；健康检查探针常用 HEAD，故在此回退到 GET（v1.8.2 修复）。
+        wanted = ("GET",) if method == "HEAD" else (method,)
         for route in self._routes:
-            if route.method != method:
+            if route.method not in wanted:
                 continue
             found = route.regex.match(path)
             if found:
@@ -64,9 +68,10 @@ class Router:
 
     def allow_methods(self, path: str) -> set[str]:
         """路径存在但方法不匹配时，用于返回 405 而非 404。"""
-        return {
-            r.method for r in self._routes if r.regex.match(path)
-        }
+        methods = {r.method for r in self._routes if r.regex.match(path)}
+        if "GET" in methods:
+            methods.add("HEAD")   # HEAD 与 GET 同源（见 match）
+        return methods
 
     def routes(self) -> list[tuple[str, str]]:
         """已注册的 (method, pattern) 列表，供接口文档生成使用（v1.8.2）。

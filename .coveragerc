@@ -1,0 +1,21 @@
+# 覆盖率配置（CODE_REVIEW.md F10：此前无覆盖率度量，缺口靠肉眼判断）
+[run]
+source = app, server
+omit =
+    */__pycache__/*
+    */_backup_v1.5_20261008/*
+    app/__init__.py
+    server/__init__.py
+    server/__main__.py
+
+[report]
+# 允许的未覆盖行：纯入口/常量定义等无逻辑分支
+exclude_lines =
+    pragma: no cover
+    if __name__ == .__main__.:
+    raise NotImplementedError
+    \.\.\.
+
+show_missing = True
+skip_covered = False
+precision = 1

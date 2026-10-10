@@ -23,8 +23,9 @@ jobs:
       - name: 静态检查
         run: ruff check .
 
-      - name: 单元测试
-        run: pytest tests/ -q
+      - name: 单元测试 + 覆盖率
+        # 阈值设为 80（当前 86%）：允许小幅波动，但阻止覆盖率明显回退
+        run: pytest tests/ -q --cov --cov-report=term-missing --cov-fail-under=80
 
   frontend:
     name: 前端（tsc + vite build）

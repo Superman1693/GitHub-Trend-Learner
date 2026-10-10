@@ -6,6 +6,40 @@
 
 ---
 
+## [1.8.3] - 2026-10-10
+
+测试覆盖率补强：**68% → 86.6%**，测试 212 → **379 项**；`ruff check` 全绿。
+
+### 修复
+
+- **`HEAD` 请求在 API 路径上一律返回 405**（补测时发现）：`server/app.py` 的 `_write`
+  专门处理了 HEAD（说明本意支持），但 `Router` 未注册 HEAD，导致永远匹配不上。
+  按 RFC 9110 §9.3.2「HEAD 语义等同 GET，仅不返回消息体」，现于 `Router.match` 回退到 GET，
+  并在 `allow_methods` 中一并列出 HEAD。健康检查探针常用 HEAD，此前会误判服务不可用。
+
+### 变更
+
+- **测试覆盖率 68% → 86.6%**（`CODE_REVIEW.md` F10）：用覆盖率量化定位缺口后补测，
+  重点覆盖此前几乎没测的核心路径：
+
+  | 模块 | 覆盖率 | 补测内容 |
+  | --- | --- | --- |
+  | `app/llm.py` | 19% → **100%** | 重试策略、`response_format` 降级、`extract_json` 的字符串/转义配对 |
+  | `app/agents/tutor.py` | 19% → **100%** | 门禁退回/降级控制流、局部修复不丢模块、glossary 保留 |
+  | `app/agents/analyst.py` | 30% → **100%** | 契约违约（缺模块）、非法 project_type 归零、降级 note 注入 |
+  | `app/mailer.py` | 25% → **100%** | 归档落盘、SMTP 未配置降级、重试耗尽如实报错、RFC 2231 附件名 |
+  | `app/orchestrator.py` | 28% → **90%** | 路由分类、缓存命中短路、降级四件套、**「降级不写缓存」回归**、top 钳制 |
+  | `app/github_client.py` | 50% → **98%** | 限流等待、5xx 退避、404 语义、空仓库 409 |
+  | `app/search.py` | 61% → **98%** | Bing HTML 解析（跳转链还原、非法链接跳过、改版容错）、三级降级链 |
+  | `server/app.py` | 31% → **76%** | 405/404 语义、413、CORS 白名单、500 不泄漏、HEAD |
+  | `server/http/router.py` | 95% → **100%** | 路径参数解码、HEAD→GET 回退 |
+  | `server/routes/tasks.py` | 29% → **71%** | 入参校验矩阵、重试 409 |
+
+- 新增 `.coveragerc`；CI 增加 `--cov-fail-under=80` 阈值，阻止覆盖率回退。
+- `requirements-dev.txt` 补 `pytest-cov`。
+
+---
+
 ## [1.8.2] - 2026-10-10
 
 工程基建补齐 + 缓存淘汰 + 文档全文检索。**190 项测试全部通过**，`ruff check` 全绿。
