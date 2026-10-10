@@ -1,0 +1,72 @@
+# 一键起服务（v1.8.3）
+#
+#   docker compose up -d --build     构建并后台启动
+#   docker compose logs -f           看日志
+#   docker compose down              停止
+#
+# 密钥从 .env 读取（该文件不入库）。首次使用请先复制模板：
+#   cp .env.example .env  然后填入 GITHUB_TOKEN / LLM_* 等
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: github-trend-learner:latest
+    container_name: gtl-web
+    restart: unless-stopped
+
+    # 敏感配置只在运行时注入，不烘焙进镜像
+    env_file:
+      - .env
+    environment:
+      # 容器内必须监听 0.0.0.0，否则端口映射不生效
+      UI_HOST: 0.0.0.0
+      UI_PORT: 8000
+
+    ports:
+      # 默认只绑本机，避免把控制台暴露到局域网。
+      # 需要给同网段其它机器访问时改成 "8000:8000"。
+      - "127.0.0.1:8000:8000"
+
+    volumes:
+      # 这三个目录是运行期数据，必须持久化：
+      #   cache   解析缓存 + 候选池快照 + 收藏
+      #   outputs 生成的六模块文档
+      #   logs    运行日志（「运行指标」页的数据源）
+      - ./cache:/app/cache
+      - ./outputs:/app/outputs
+      - ./logs:/app/logs
+
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - |
+          import urllib.request, sys
+          sys.exit(0 if urllib.request.urlopen(
+              "http://127.0.0.1:8000/api/health", timeout=4).status == 200 else 1)
+      interval: 30s
+      timeout: 5s
+      start_period: 10s
+      retries: 3
+
+  # 可选：常驻定时任务（每日自动抓取 + 解析）
+  # 默认不启动；需要时执行 docker compose --profile schedule up -d
+  scheduler:
+    image: github-trend-learner:latest
+    container_name: gtl-scheduler
+    restart: unless-stopped
+    profiles: ["schedule"]
+    depends_on:
+      web:
+        condition: service_healthy
+    env_file:
+      - .env
+    # 与 web 共用同一份数据卷：定时任务写出的文档要能被控制台读到
+    volumes:
+      - ./cache:/app/cache
+      - ./outputs:/app/outputs
+      - ./logs:/app/logs
+    command: ["python", "main.py", "serve", "--at", "09:00"]

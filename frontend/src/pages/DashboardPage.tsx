@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { useOverview, useSystemConfig } from '../hooks/useSystem'
 import { Badge, Card, EmptyState, LoadingBlock, StatusDot } from '../components/ui'
 import { IconDocument, IconSettings, IconTask } from '../components/ui/icons'
+import { MetricsPanel } from '../components/dashboard/MetricsPanel'
 import '../styles/pages.css'
 
 export function DashboardPage() {
@@ -150,10 +151,12 @@ export function DashboardPage() {
         </div>
       </Card>
 
+      <MetricsPanel days={7} />
+
       <Card title="模块口径提示">
         <p className="text-muted" style={{ fontSize: 'var(--fs-sm)' }}>
-          文档规范已升级为 <strong>六模块</strong>（删除报错大全）。当前代码侧仍按七模块产出，
-          阅读器会自动兼容两种口径 —— 模块数量以文档实际内容为准。
+          文档规范为 <strong>六模块</strong>（v1.5 起删除报错大全，原 M7 前移为 M6）。
+          代码侧已同步为六模块产出，阅读器同时兼容历史七模块文档 —— 模块数量以文档实际内容为准。
         </p>
         <div className="row" style={{ marginTop: 'var(--sp-3)', flexWrap: 'wrap' }}>
           <Badge tone="accent">结构固定 · 内容定制</Badge>

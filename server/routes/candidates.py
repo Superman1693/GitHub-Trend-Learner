@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import threading
 
-from app import candidates, classify, search
+from app import candidates, classify, favorites, search
 from app.config import Settings
 from app.github_client import GitHubClient
 
@@ -32,6 +32,13 @@ def _client() -> GitHubClient:
             if _CLIENT is None:
                 _CLIENT = GitHubClient(token=Settings.load().github_token)
     return _CLIENT
+
+
+def _bool(value: str | None) -> bool | None:
+    """三态解析：未传 -> None（不筛选）；1/true/yes -> True；0/false/no -> False。"""
+    if value in (None, ""):
+        return None
+    return value.strip().lower() in ("1", "true", "yes", "on")
 
 
 def _int(value: str | None) -> int | None:
@@ -55,6 +62,7 @@ def list_candidates(req: Request) -> Response:
         project_type=req.q("project_type"),
         direction=req.q("direction"),
         trend=req.q("trend"),
+        favorited=_bool(req.q("favorited")),
         min_stars=_int(req.q("min_stars")),
         min_days=_int(req.q("min_days")),
         q=req.q("q"),
@@ -152,9 +160,63 @@ def analyze(req: Request) -> Response:
     }, status=202)
 
 
+def favorite(req: Request) -> Response:
+    """收藏候选仓库（v1.8.3）。
+
+    候选池只保留 7 天快照，用户看中的仓库若不收藏，过几天就从榜单消失了。
+    这里只记录 full_name，元信息仍从候选池实时取，避免数据双份不一致。
+    """
+    full_name = f"{req.path_params.get('owner')}/{req.path_params.get('repo')}"
+    added = favorites.add(full_name)
+    return json_response({
+        "full_name": full_name,
+        "favorited": True,
+        "changed": added,
+        "total": len(favorites.names()),
+    }, status=201 if added else 200)
+
+
+def unfavorite(req: Request) -> Response:
+    full_name = f"{req.path_params.get('owner')}/{req.path_params.get('repo')}"
+    removed = favorites.remove(full_name)
+    return json_response({
+        "full_name": full_name,
+        "favorited": False,
+        "changed": removed,
+        "total": len(favorites.names()),
+    })
+
+
+def favorite_list(_req: Request) -> Response:
+    """收藏清单。已从候选池消失的仓库也会列出（`in_pool: false`），
+
+    避免用户以为「收藏丢了」——它们只是不再上榜，仍可点击深入解析。
+    """
+    data = favorites.load_all()
+    pool = {it["full_name"]: it for it in candidates.merged_items()}
+    items = []
+    for name, meta in sorted(data.items(), key=lambda kv: kv[1].get("added_at", ""), reverse=True):
+        entry = pool.get(name)
+        items.append({
+            "full_name": name,
+            "html_url": (entry or {}).get("html_url") or search.build_repo_url(name),
+            "stars": (entry or {}).get("stars"),
+            "language": (entry or {}).get("language"),
+            "description_zh": (entry or {}).get("description_zh"),
+            "description": (entry or {}).get("description"),
+            "added_at": meta.get("added_at"),
+            "note": meta.get("note") or "",
+            "in_pool": entry is not None,
+        })
+    return json_response({"total": len(items), "items": items})
+
+
 def register(router: Router) -> None:
     router.get("/api/candidates", list_candidates)
     router.get("/api/candidates/facets", candidate_facets)
+    router.get("/api/candidates/favorites", favorite_list)
     router.get("/api/candidates/{owner}/{repo}", candidate_detail)
     router.post("/api/candidates/{owner}/{repo}/preview", preview)
     router.post("/api/candidates/{owner}/{repo}/analyze", analyze)
+    router.post("/api/candidates/{owner}/{repo}/favorite", favorite)
+    router.delete("/api/candidates/{owner}/{repo}/favorite", unfavorite)

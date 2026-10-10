@@ -4,6 +4,8 @@ from __future__ import annotations
 from datetime import datetime
 
 from app import __version__ as app_version
+from app import metrics as metrics_service
+from app import schedule_state
 
 from ..http import Request, Response, Router, json_response
 from ..http.static import dist_summary
@@ -65,6 +67,29 @@ def overview(_req: Request) -> Response:
 _openapi_cache: dict | None = None
 
 
+def schedule(_req: Request) -> Response:
+    """定时任务状态（v1.8.3）。
+
+    `serve` 是独立进程，控制台通过它写下的心跳文件判断运行状态。
+    状态文件不存在/心跳过期都如实返回 `running: false` + `reason`，不猜测。
+    """
+    return json_response(schedule_state.snapshot())
+
+
+def metrics(req: Request) -> Response:
+    """运行指标（v1.8.3）。
+
+    从最近 N 天的 jsonl 日志聚合成功率、耗时、缓存命中率、token 消耗。
+    `success_rate` 可能为 `null`——表示该 Agent 不记录 `done` 事件，
+    成功率无从计算（而不是 0%），前端应显示「未知」。
+    """
+    try:
+        days = int(req.q("days") or 7)
+    except ValueError:
+        days = 7
+    return json_response(metrics_service.collect(days=days))
+
+
 def openapi(_req: Request) -> Response:
     """机器可读的接口清单（v1.8.2，CODE_REVIEW.md F11）。
 
@@ -83,4 +108,6 @@ def register(router: Router) -> None:
     router.get("/api/health", health)
     router.get("/api/system/config", config)
     router.get("/api/system/overview", overview)
+    router.get("/api/system/schedule", schedule)
+    router.get("/api/system/metrics", metrics)
     router.get("/api/openapi.json", openapi)

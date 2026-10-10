@@ -131,6 +131,54 @@ export interface Candidate {
   days: string[]
   days_count?: number
   trend?: 'new' | 'rising' | 'unknown'
+  /** star 趋势序列（由旧到新），与 history_days 逐位对应（v1.8.3） */
+  star_history?: number[]
+  history_days?: string[]
+  /** 序列首尾差值；不足 2 个点时为 0 */
+  star_delta?: number
+  /** 是否已收藏（v1.8.3） */
+  favorited?: boolean
+}
+
+export interface ScheduleStatus {
+  running: boolean
+  /** 判定依据：running / stale / never_started / unknown_heartbeat */
+  reason: 'running' | 'stale' | 'never_started' | 'unknown_heartbeat'
+  message: string
+  at: string | null
+  next_run_at: string | null
+  last_run_at: string | null
+  last_result: string | null
+  heartbeat: string | null
+  stale_seconds: number | null
+  started_at?: string
+  pid?: number
+}
+
+export interface FavoriteResult {
+  full_name: string
+  favorited: boolean
+  /** 本次调用是否真的改变了状态（重复收藏为 false） */
+  changed: boolean
+  total: number
+}
+
+export interface FavoriteItem {
+  full_name: string
+  html_url: string
+  stars: number | null
+  language: string | null
+  description: string | null
+  description_zh: string | null
+  added_at: string
+  note: string
+  /** 是否仍在当前候选池中；false 表示已下榜但仍可解析 */
+  in_pool: boolean
+}
+
+export interface FavoriteListResponse {
+  total: number
+  items: FavoriteItem[]
 }
 
 export interface DimensionLabels {
@@ -192,9 +240,32 @@ export interface CandidateFilters {
   project_type?: string
   direction?: string
   trend?: string
+  favorited?: boolean
   min_stars?: number
   min_days?: number
   q?: string
   day?: string
 }
 
+
+export interface AgentMetrics {
+  calls: number
+  done: number
+  failed: number
+  /** null 表示该 Agent 不记录 done 事件，成功率无从计算（≠ 0%） */
+  success_rate: number | null
+  avg_ms: number
+  p95_ms: number
+  duration_samples: number
+}
+
+export interface Metrics {
+  range: { days: number; files: number; events: number }
+  tasks: { started: number; failed: number; retry: number; success_rate: number | null }
+  agents: Record<string, AgentMetrics>
+  cache: { hit: number; stored: number; lookups: number; hit_rate: number | null }
+  gate: Record<string, number>
+  tokens: { total: number; avg_per_task: number }
+  slowest: Array<{ agent: string; duration_ms: number; status: string; task_id: string | null; ts: string | null }>
+  recent_errors: Array<{ ts: string | null; agent: string; task_id: string | null; error: string }>
+}

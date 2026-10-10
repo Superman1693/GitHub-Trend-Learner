@@ -1,0 +1,52 @@
+# Docker 构建上下文排除清单（v1.8.3）
+#
+# 目的：把镜像上下文从 ~120MB 压到几百 KB。
+# 注意这里**不是** .gitignore 的复制品——两者关注点不同：
+#   .gitignore 关心「不进版本库」，.dockerignore 关心「不进构建上下文」。
+# 例如 frontend/src 需要进 git（要改代码），但不需要进镜像（镜像只要 dist）。
+
+# ---- 版本库与工具 ----
+.git
+.gitignore
+.gitattributes
+.github
+.workbuddy-ai
+
+# ---- Python 运行环境与缓存 ----
+.venv
+__pycache__
+**/__pycache__
+*.py[cod]
+.pytest_cache
+.ruff_cache
+.coverage
+htmlcov
+
+# ---- 前端依赖与源码 ----
+# 依赖在镜像内用 npm ci 重装（跨平台二进制不通用，不能直接拷宿主的）
+frontend/node_modules
+# 源码与配置由 Dockerfile 按需 COPY，构建产物在阶段 1 生成
+frontend/src
+frontend/index.html
+frontend/vite.config.ts
+frontend/tsconfig*.json
+frontend/eslint.config.js
+frontend/dist
+
+# ---- 运行期数据（应挂卷，不进镜像）----
+cache
+logs
+outputs
+
+# ---- 历史备份与本地文档 ----
+_backup_v1.5_20261008
+*.docx
+
+# ---- 编辑器与系统 ----
+.vscode
+.idea
+.DS_Store
+Thumbs.db
+*.tmp
+*.bak
+*.log

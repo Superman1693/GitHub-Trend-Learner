@@ -16,6 +16,7 @@
 from __future__ import annotations
 
 import argparse
+import os
 import sys
 import time
 from datetime import date, datetime, timedelta
@@ -28,7 +29,7 @@ try:
 except Exception:
     pass
 
-from app import log
+from app import log, schedule_state
 from app.config import CACHE_DIR, LOGS_DIR, OUTPUTS_DIR, PROJECT_ROOT, Settings
 from app.orchestrator import Orchestrator
 
@@ -94,27 +95,50 @@ def cmd_translate(_args) -> int:
 
 
 def cmd_serve(args) -> int:
-    """常驻模式：每日 --at 时刻执行一次 daily（定时触发，Req1.1、design.md §14 调度方式）。"""
+    """常驻模式：每日 --at 时刻执行一次 daily（定时触发，Req1.1、design.md §14 调度方式）。
+
+    v1.8.3：等待期间**分片睡眠**并持续写心跳（`cache/schedule-state.json`），
+    让 Web 控制台能判断「定时任务在不在跑、下次何时执行」。
+    此前整段 `time.sleep(几小时)` 期间没有任何状态输出，前端无从感知。
+    """
     at = args.at or "09:00"
     log.console(f"[serve] 常驻模式：每日 {at} 执行每日任务（Ctrl+C 退出）")
-    while True:
-        now = datetime.now()
-        target = datetime.strptime(f"{now:%Y-%m-%d} {at}", "%Y-%m-%d %H:%M")
-        if target <= now:
-            target += timedelta(days=1)
-        wait_s = (target - now).total_seconds()
-        log.console(f"[serve] 下次执行：{target}（{int(wait_s)}s 后），Ctrl+C 可退出")
-        try:
-            time.sleep(max(wait_s, 1))
-        except KeyboardInterrupt:
-            log.console("[serve] 已退出")
-            return 0
-        except InterruptedError:
-            continue
-        try:
-            Orchestrator().run_daily()
-        except Exception as exc:
-            log.console(f"[serve] 每日任务失败（不影响下次调度）：{exc}")
+    schedule_state.write(at=at, started_at=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                         pid=os.getpid())
+    try:
+        while True:
+            now = datetime.now()
+            target = datetime.strptime(f"{now:%Y-%m-%d} {at}", "%Y-%m-%d %H:%M")
+            if target <= now:
+                target += timedelta(days=1)
+            log.console(f"[serve] 下次执行：{target}，Ctrl+C 可退出")
+            schedule_state.write(at=at, next_run_at=target.strftime("%Y-%m-%d %H:%M"))
+
+            # 分片睡眠：每 HEARTBEAT_INTERVAL 秒醒一次写心跳，让外部能判断存活
+            remaining = (target - datetime.now()).total_seconds()
+            while remaining > 0:
+                time.sleep(min(schedule_state.HEARTBEAT_INTERVAL, max(remaining, 1)))
+                schedule_state.write(at=at, next_run_at=target.strftime("%Y-%m-%d %H:%M"))
+                remaining = (target - datetime.now()).total_seconds()
+
+            schedule_state.write(at=at, last_run_at=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                                 last_result="running")
+            try:
+                result = Orchestrator().run_daily()
+                ok = bool(result.get("ok"))
+                schedule_state.write(
+                    at=at,
+                    last_result="ok" if ok else "degraded",
+                    last_message=("" if ok else str(result.get("message", ""))[:300]),
+                )
+            except Exception as exc:  # noqa: BLE001 - 单次失败不应中断调度
+                log.console(f"[serve] 每日任务失败（不影响下次调度）：{exc}")
+                schedule_state.write(at=at, last_result="failed",
+                                     last_message=str(exc)[:300])
+    except KeyboardInterrupt:
+        log.console("[serve] 已退出")
+        schedule_state.clear()
+        return 0
 
 
 def cmd_doctor(_args) -> int:

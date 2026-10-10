@@ -212,3 +212,63 @@
     font-size: var(--fs-xl);
   }
 }
+
+/* 运行指标表（v1.8.3） */
+.metrics-table {
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-sm);
+  overflow: hidden;
+  font-size: var(--fs-xs);
+}
+
+.metrics-table__head,
+.metrics-table__row {
+  display: grid;
+  grid-template-columns: 2fr 0.7fr 1fr 1fr 1fr;
+  gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-3);
+  align-items: center;
+}
+
+.metrics-table__head {
+  background: var(--c-surface-sunken);
+  color: var(--c-text-muted);
+  font-weight: 600;
+}
+
+.metrics-table__row + .metrics-table__row {
+  border-top: 1px solid var(--c-border-faint);
+}
+
+.metrics-table__name {
+  font-family: var(--font-mono);
+  color: var(--c-text);
+}
+
+.metrics-errors {
+  margin-top: var(--sp-3);
+  font-size: var(--fs-xs);
+}
+
+.metrics-errors summary {
+  cursor: pointer;
+  color: var(--c-text-muted);
+}
+
+.metrics-errors ul {
+  margin: var(--sp-2) 0 0;
+  padding-left: var(--sp-4);
+  list-style: none;
+}
+
+.metrics-errors li {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-2);
+  margin-bottom: 4px;
+}
+
+.metrics-errors__msg {
+  color: var(--c-text-muted);
+  word-break: break-all;
+}

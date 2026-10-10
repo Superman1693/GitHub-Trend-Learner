@@ -382,3 +382,119 @@
     width: 100%;
   }
 }
+
+/* star 趋势曲线行（v1.8.3） */
+.cand-card__spark {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  margin-top: var(--sp-2);
+  padding: var(--sp-1) var(--sp-2);
+  background: var(--c-surface-sunken);
+  border-radius: var(--r-sm);
+  font-size: var(--fs-xs);
+  color: var(--c-text-muted);
+}
+
+/* star 趋势曲线行（v1.8.3） */
+.cand-card__spark {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  margin-top: var(--sp-2);
+  padding: var(--sp-1) var(--sp-2);
+  background: var(--c-surface-sunken);
+  border-radius: var(--r-sm);
+  font-size: var(--fs-xs);
+  color: var(--c-text-muted);
+}
+
+/* 收藏按钮（v1.8.3） */
+.cand-card__head-right {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  flex: none;
+}
+
+.cand-card__fav {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-sm);
+  background: var(--c-surface);
+  color: var(--c-text-subtle);
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+
+.cand-card__fav:hover:not(:disabled) {
+  color: var(--c-warn);
+  border-color: var(--c-warn-border);
+  background: var(--c-warn-soft);
+}
+
+.cand-card__fav.is-on {
+  color: var(--c-warn);
+  border-color: var(--c-warn-border);
+  background: var(--c-warn-soft);
+}
+
+.cand-card__fav:disabled {
+  cursor: progress;
+  opacity: 0.7;
+}
+
+/* 已收藏卡片：左侧强调条，方便在长列表里一眼扫到 */
+.cand-card--favorited {
+  border-left: 3px solid var(--c-warn);
+}
+
+/* 收藏按钮（v1.8.3） */
+.cand-card__head-right {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  flex: none;
+}
+
+.cand-card__fav {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-sm);
+  background: var(--c-surface);
+  color: var(--c-text-subtle);
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+
+.cand-card__fav:hover:not(:disabled) {
+  color: var(--c-warn);
+  border-color: var(--c-warn-border);
+  background: var(--c-warn-soft);
+}
+
+.cand-card__fav.is-on {
+  color: var(--c-warn);
+  border-color: var(--c-warn-border);
+  background: var(--c-warn-soft);
+}
+
+.cand-card__fav:disabled {
+  cursor: progress;
+  opacity: 0.7;
+}
+
+/* 已收藏卡片：左侧强调条，方便在长列表里一眼扫到 */
+.cand-card--favorited {
+  border-left: 3px solid var(--c-warn);
+}

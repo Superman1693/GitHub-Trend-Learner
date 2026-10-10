@@ -189,14 +189,43 @@ python main.py api-doc                       # 生成接口清单 API.md
 python main.py daily                         # 抓取今日热门并归档/发邮件
 ```
 
+## 部署（Docker）
+
+不想装 Python / Node 环境时用容器跑：
+
+```bash
+cp .env.example .env                         # 先填好 LLM_API_KEY 等
+docker compose up -d --build                 # 构建并后台启动
+docker compose logs -f                       # 看日志
+docker compose down                          # 停止
+```
+
+访问 http://127.0.0.1:8000 。
+
+**默认只绑本机**（`127.0.0.1:8000`），避免把控制台暴露到局域网。需要同网段其它机器访问时，
+改 `docker-compose.yml` 里的端口映射为 `"8000:8000"`，并自行加访问控制。
+
+`cache/`、`outputs/`、`logs/` 三个目录以卷挂载，容器重建不会丢数据。
+
+想让它每天自动跑，启用可选的调度服务（默认不启动）：
+
+```bash
+docker compose --profile schedule up -d      # 每日 09:00 自动抓取 + 解析
+```
+
+> **本机未验证**：本仓库的 Docker 配置已通过静态校验（COPY 源路径、compose 语法、
+> 卷挂载、端口绑定），但**当前开发机没有 Docker，镜像未实际构建过**。
+> 首次使用时请留意 `docker compose up` 的输出。
+
 ## 文档状态
 
-- 文档版本：v1.8.3
-- 已就绪：`global.md`、`requirements.md`、`design.md`、`tasks.md`、`agent/*.md`（5 份）、`templates/*.md`（2 份）；流水线代码 `app/`、CLI `main.py`、后端 `server/`、前端 `frontend/`、测试 `tests/`（**445 项全部通过**）
-- 工程保障：`ruff.toml`（lint 全绿）、`.github/workflows/ci.yml`、`requirements-dev.txt`、`requirements.lock`、`.gitattributes`
+- 文档版本：v1.9.0
+- 已就绪：`global.md`、`requirements.md`、`design.md`、`tasks.md`、`agent/*.md`（5 份）、`templates/*.md`（2 份）；流水线代码 `app/`、CLI `main.py`、后端 `server/`、前端 `frontend/`、测试 `tests/`（**521 项全部通过**）
+- 工程保障：`ruff.toml`（lint 全绿）、`.github/workflows/ci.yml`（含覆盖率阈值 80%）、`requirements-dev.txt`、`requirements.lock`、`.gitattributes`、`.coveragerc`、`Dockerfile` + `docker-compose.yml`
 - 接口清单：`API.md`（由 `python main.py api-doc` 从路由表内省生成）；机器可读版本见 `GET /api/openapi.json`
 - 决策事项：Q1–Q9 见 `requirements.md` §9 与 `tasks.md` 决策记录
 - 数据读取：GitHub REST API 直连（`github.com/trending` 多入口聚合主方案 + Search API 降级）
 - 描述翻译：免费翻译引擎 + 内容寻址缓存（不消耗 LLM）
 - 代码与文档已对齐六模块口径；仓库发现与两阶段解析见 `design.md` §16
-- 代码审查结论与整改记录见 `CODE_REVIEW.md`（v1.8.1 已修复全部 P0 与主要 P1）
+- 代码审查结论与整改记录见 `CODE_REVIEW.md`（全部 P0 与主要 P1 已修复）
+- 测试覆盖率 **90.9%**（`pytest --cov`，CI 阈值 80%）

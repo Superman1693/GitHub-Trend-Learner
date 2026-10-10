@@ -108,7 +108,7 @@ export const IconSpark = (p: IconProps) => (
 
 export const IconStar = (p: IconProps) => (
   <Base {...p}>
-    <path d="m12 3.6 2.6 5.3 5.8.85-4.2 4.1 1 5.8-5.2-2.75L6.8 19.6l1-5.8-4.2-4.1 5.8-.85z" />
+    <path d={STAR_PATH} />
   </Base>
 )
 
@@ -151,5 +151,15 @@ export const IconDownload = (p: IconProps) => (
     <path d="M12 3v12" />
     <path d="m7 11 5 5 5-5" />
     <path d="M4 20h16" />
+  </Base>
+)
+
+const STAR_PATH =
+  'm12 3.6 2.6 5.3 5.8.85-4.2 4.1 1 5.8-5.2-2.75L6.8 19.6l1-5.8-4.2-4.1 5.8-.85z'
+
+/** 已收藏：实心星（`IconStar` 的填充版，路径保持一致以便视觉对齐） */
+export const IconStarFilled = (p: IconProps) => (
+  <Base {...p}>
+    <path d={STAR_PATH} fill="currentColor" />
   </Base>
 )

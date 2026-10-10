@@ -103,3 +103,86 @@ def test_no_llm_dependency():
     assert "from .llm" not in src
     assert "import llm" not in src
     assert "LLMClient" not in src
+
+
+# ---------------- star 趋势序列（v1.8.3）----------------
+
+def _repo(full_name: str, stars: int) -> dict:
+    return {"full_name": full_name, "description": "d", "language": "Python",
+            "stars": stars, "stars_today": 1, "topics": []}
+
+
+def test_star_history_tracks_growth_across_days(tmp_path, monkeypatch):
+    """连续 3 天上榜：序列应由旧到新，且与日期逐位对应。"""
+    monkeypatch.setattr(candidates, "CACHE_DIR", tmp_path)
+    for day, stars in (("2026-10-08", 100), ("2026-10-09", 250), ("2026-10-10", 400)):
+        candidates.save(day, candidates.build_day_snapshot([_repo("a/b", stars)], "x", day))
+
+    item = candidates.merged_items()[0]
+    assert item["star_history"] == [100, 250, 400]
+    assert item["history_days"] == ["2026-10-08", "2026-10-09", "2026-10-10"]
+    assert item["star_delta"] == 300
+
+
+def test_star_history_days_align_with_values(tmp_path, monkeypatch):
+    """回归：日期轴必须与数值逐位对应。
+
+    曾用全局日期并集做横轴，导致「隔天上榜」的仓库序列与日期错位。
+    """
+    monkeypatch.setattr(candidates, "CACHE_DIR", tmp_path)
+    candidates.save("2026-10-08", candidates.build_day_snapshot([_repo("a/b", 10)], "x", "2026-10-08"))
+    # 10-09 缺席，10-10 又出现
+    candidates.save("2026-10-10", candidates.build_day_snapshot([_repo("a/b", 30)], "x", "2026-10-10"))
+
+    item = candidates.merged_items()[0]
+    assert item["star_history"] == [10, 30], "缺席日不应补零"
+    assert item["history_days"] == ["2026-10-08", "2026-10-10"], "日期轴应跳过缺席日"
+    assert len(item["star_history"]) == len(item["history_days"])
+
+
+def test_star_history_single_point_has_zero_delta(tmp_path, monkeypatch):
+    """只上榜一次时无法体现趋势：序列长度 1、Δ=0（前端据此显示「数据不足」）。"""
+    monkeypatch.setattr(candidates, "CACHE_DIR", tmp_path)
+    candidates.save("2026-10-10", candidates.build_day_snapshot([_repo("a/b", 500)], "x", "2026-10-10"))
+
+    item = candidates.merged_items()[0]
+    assert item["star_history"] == [500]
+    assert item["star_delta"] == 0
+
+
+def test_star_history_detects_decline(tmp_path, monkeypatch):
+    """star 下降（如被重置/删库）也要如实反映，不能取绝对值。"""
+    monkeypatch.setattr(candidates, "CACHE_DIR", tmp_path)
+    candidates.save("2026-10-08", candidates.build_day_snapshot([_repo("a/b", 900)], "x", "2026-10-08"))
+    candidates.save("2026-10-09", candidates.build_day_snapshot([_repo("a/b", 700)], "x", "2026-10-09"))
+
+    item = candidates.merged_items()[0]
+    assert item["star_history"] == [900, 700]
+    assert item["star_delta"] == -200
+
+
+def test_star_history_isolated_per_repo(tmp_path, monkeypatch):
+    """多个仓库的序列不能互相污染。"""
+    monkeypatch.setattr(candidates, "CACHE_DIR", tmp_path)
+    candidates.save("2026-10-08", candidates.build_day_snapshot(
+        [_repo("a/one", 10), _repo("b/two", 1000)], "x", "2026-10-08"))
+    candidates.save("2026-10-09", candidates.build_day_snapshot(
+        [_repo("a/one", 20), _repo("b/two", 2000)], "x", "2026-10-09"))
+
+    by_name = {it["full_name"]: it for it in candidates.merged_items()}
+    assert by_name["a/one"]["star_history"] == [10, 20]
+    assert by_name["b/two"]["star_history"] == [1000, 2000]
+    assert by_name["a/one"]["star_delta"] == 10
+    assert by_name["b/two"]["star_delta"] == 1000
+
+
+def test_star_history_zero_when_stars_missing(tmp_path, monkeypatch):
+    """缺失 stars 字段按 0 处理，不应抛异常。"""
+    monkeypatch.setattr(candidates, "CACHE_DIR", tmp_path)
+    snap = candidates.build_day_snapshot([_repo("a/b", 5)], "x", "2026-10-08")
+    snap["items"][0].pop("stars")
+    candidates.save("2026-10-08", snap)
+
+    item = candidates.merged_items()[0]
+    assert item["star_history"] == [0]
+

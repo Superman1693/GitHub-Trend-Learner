@@ -48,6 +48,9 @@ class Router:
     def post(self, pattern: str, handler: Handler) -> None:
         self.add("POST", pattern, handler)
 
+    def delete(self, pattern: str, handler: Handler) -> None:
+        self.add("DELETE", pattern, handler)
+
     def match(self, method: str, path: str) -> tuple[Handler, dict[str, str]] | None:
         method = method.upper()
         # HEAD 语义等同 GET（RFC 9110 §9.3.2：仅不返回消息体）。

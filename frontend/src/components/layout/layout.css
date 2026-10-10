@@ -188,6 +188,12 @@
   color: var(--c-text-muted);
 }
 
+/* 定时任务未运行：整体降调，避免与「后端正常」抢注意力 */
+.topbar__status--muted {
+  color: var(--c-text-subtle);
+  background: var(--c-surface-sunken);
+}
+
 .icon-btn {
   display: none;
   align-items: center;

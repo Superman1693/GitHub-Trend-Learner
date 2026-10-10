@@ -566,3 +566,49 @@
     padding-right: var(--sp-4);
   }
 }
+
+/* ---------------- Sparkline（候选池 star 趋势曲线，v1.8.3） ---------------- */
+
+.sparkline {
+  display: block;
+  overflow: visible;
+}
+
+.sparkline--empty {
+  display: inline-block;
+  font-size: var(--fs-xs);
+  color: var(--c-text-subtle);
+  cursor: help;
+}
+
+.sparkline__area {
+  fill: currentColor;
+  opacity: 0.12;
+}
+
+.sparkline__line {
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.sparkline__dot {
+  fill: currentColor;
+}
+
+/* 涨/跌/平用语义色区分：上涨用绿、下跌用红、持平用灰 */
+.sparkline--up { color: var(--c-success); }
+.sparkline--down { color: var(--c-danger); }
+.sparkline--flat { color: var(--c-text-subtle); }
+
+.trend-delta {
+  font-size: var(--fs-xs);
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.trend-delta--up { color: var(--c-success); }
+.trend-delta--down { color: var(--c-danger); }
+.trend-delta--flat { color: var(--c-text-subtle); }

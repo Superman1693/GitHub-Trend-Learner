@@ -28,6 +28,19 @@ SUMMARIES: dict[tuple[str, str], dict] = {
         "summary": "产出概览",
         "desc": "返回文档统计与任务运行数，供仪表盘使用。",
     },
+    ("GET", "/api/system/schedule"): {
+        "summary": "定时任务状态",
+        "desc": "返回定时任务是否在运行、下次/上次执行时间与上次结果。"
+                "`serve` 是独立进程，这里通过它写下的心跳文件判断存活"
+                "（心跳过期即视为已停止），并给出 reason 说明判定依据。",
+    },
+    ("GET", "/api/system/metrics"): {
+        "summary": "运行指标",
+        "desc": "从最近 N 天日志聚合：任务成功率、各 Agent 调用数与耗时、"
+                "缓存命中率（闭环 T16）、token 消耗、最慢调用与最近错误。"
+                "`success_rate` 为 null 表示该 Agent 不记录 done 事件，无从计算。",
+        "params": [("days", "统计窗口天数，默认 7，上限 90")],
+    },
     ("GET", "/api/openapi.json"): {
         "summary": "接口清单（OpenAPI 3.1）",
         "desc": "从路由表内省生成的机器可读接口文档，路径与方法保证与实现一致。",
@@ -80,9 +93,15 @@ SUMMARIES: dict[tuple[str, str], dict] = {
         "params": [("language", "编程语言"), ("deployable", "可部署性"),
                    ("playfulness", "可玩性"), ("practical_tool", "是否实用工具"),
                    ("project_type", "项目类型"), ("direction", "技术方向"),
-                   ("trend", "上榜态势 new/rising"), ("min_stars", "最低 star"),
+                   ("trend", "上榜态势 new/rising"), ("favorited", "只看收藏（true/false）"),
+                   ("min_stars", "最低 star"),
                    ("min_days", "最少上榜天数"), ("q", "关键词"), ("day", "仅看某日上榜"),
                    ("limit", "返回条数，默认 120，上限 400")],
+    },
+    ("GET", "/api/candidates/favorites"): {
+        "summary": "收藏清单",
+        "desc": "返回已收藏的仓库（新收藏在前）。已从候选池下榜的也会列出并标记 "
+                "`in_pool: false`，避免用户以为收藏丢了。",
     },
     ("GET", "/api/candidates/facets"): {
         "summary": "候选筛选项与分布",
@@ -100,6 +119,15 @@ SUMMARIES: dict[tuple[str, str], dict] = {
     ("POST", "/api/candidates/{owner}/{repo}/analyze"): {
         "summary": "阶段二：调用 AI 深入解析",
         "desc": "提交完整六模块解析任务（**会调用 LLM**），返回任务记录。",
+    },
+    ("POST", "/api/candidates/{owner}/{repo}/favorite"): {
+        "summary": "收藏仓库",
+        "desc": "加入收藏。幂等：已收藏时返回 200 且 `changed: false`，"
+                "首次收藏返回 201。只记录仓库名，元信息仍从候选池实时取。",
+    },
+    ("DELETE", "/api/candidates/{owner}/{repo}/favorite"): {
+        "summary": "取消收藏",
+        "desc": "移出收藏；未收藏时返回 200 且 `changed: false`。",
     },
 }
 

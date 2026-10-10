@@ -11,7 +11,7 @@ import json
 from datetime import date, datetime, timedelta
 from pathlib import Path
 
-from . import classify
+from . import classify, favorites
 from .config import CACHE_DIR
 from .fsutil import atomic_write_json
 
@@ -132,10 +132,17 @@ def cleanup(keep_days: int = DEFAULT_KEEP_DAYS) -> list[str]:
 
 
 def merged_items(days: list[str] | None = None) -> list[dict]:
-    """合并多日快照；同一仓库保留首次/最近出现日期与最新元信息。"""
+    """合并多日快照；同一仓库保留首次/最近出现日期与最新元信息。
+
+    v1.8.3 新增 `star_history`：每个仓库在历次快照中的 star 序列（由旧到新），
+    供发现页画趋势曲线。数据本来就随快照落盘，这里只是顺手收集，**无额外 IO**。
+    """
     days = days or available_days()
+    days_sorted = sorted(days)          # 由旧到新
     pool: dict[str, dict] = {}
-    for day in sorted(days):  # 由旧到新，保证 last_seen 取最新
+    history: dict[str, dict[str, int]] = {}   # full_name -> {day: stars}
+
+    for day in days_sorted:
         snap = load(day)
         if not snap:
             continue
@@ -143,6 +150,7 @@ def merged_items(days: list[str] | None = None) -> list[dict]:
             key = item.get("full_name")
             if not key:
                 continue
+            history.setdefault(key, {})[day] = item.get("stars") or 0
             existing = pool.get(key)
             if existing is None:
                 pool[key] = dict(item)
@@ -155,12 +163,25 @@ def merged_items(days: list[str] | None = None) -> list[dict]:
                           "html_url", "dimensions"):
                 if item.get(field):
                     existing[field] = item[field]
+
     items = list(pool.values())
     latest = (available_days() or [""])[0]
+    favs = favorites.names()          # 只读一次，避免逐个仓库读文件
     for it in items:
         it["days_count"] = len(it.get("days") or [])
         # 上榜态势：最近一期首次出现 = 今日新上榜，否则视为持续在榜（零成本规则判定）
         it["trend"] = "new" if it.get("first_seen") == latest else "rising"
+        it["favorited"] = it["full_name"] in favs
+
+        # star 趋势序列（只在出现过快照的日期取值，缺日不补零以免曲线失真）
+        # 同时给出与之**逐位对应**的日期轴：各仓库上榜日期不同，
+        # 用全局日期轴会让 series 与日期错位，故按仓库各自携带。
+        own_days = [d for d in days_sorted if d in history.get(it["full_name"], {})]
+        series = [history[it["full_name"]][d] for d in own_days]
+        it["star_history"] = series
+        it["history_days"] = own_days
+        it["star_delta"] = (series[-1] - series[0]) if len(series) >= 2 else 0
+
     items.sort(key=lambda x: (x.get("days_count", 0), x.get("stars") or 0), reverse=True)
     return items
 
@@ -191,6 +212,7 @@ def facets(items: list[dict]) -> dict:
         trend[val] = trend.get(val, 0) + 1
 
     stars = [it.get("stars") or 0 for it in items]
+    days_desc = available_days()
     return {
         "total": len(items),
         "languages": dict(sorted(languages.items(), key=lambda kv: -kv[1])),
@@ -204,7 +226,7 @@ def facets(items: list[dict]) -> dict:
             "max": max(stars) if stars else 0,
             "min": min(stars) if stars else 0,
         },
-        "days": available_days(),
+        "days": days_desc,
     }
 
 
@@ -218,13 +240,16 @@ def apply_filters(
     project_type: str | None = None,
     direction: str | None = None,
     trend: str | None = None,
+    favorited: bool | None = None,
     min_stars: int | None = None,
     min_days: int | None = None,
     q: str | None = None,
     day: str | None = None,
 ) -> list[dict]:
-    """多条件组合筛选（Req11.2，v1.8 扩展项目类型 / 技术方向 / 上榜态势）。"""
+    """多条件组合筛选（Req11.2，v1.8 扩展项目类型 / 技术方向 / 上榜态势 / 收藏）。"""
     out = items
+    if favorited is not None:
+        out = [it for it in out if bool(it.get("favorited")) is favorited]
     if day:
         out = [it for it in out if day in (it.get("days") or [])]
     if language:

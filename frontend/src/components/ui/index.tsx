@@ -5,6 +5,9 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react'
 import './ui.css'
 
+// 趋势曲线单独成文件（含 SVG 几何计算），从 barrel 再导出
+export { Sparkline, TrendDelta } from './Sparkline'
+
 /* ---------------- Button ---------------- */
 
 type ButtonVariant = 'default' | 'primary' | 'ghost' | 'danger'

@@ -1,8 +1,15 @@
 /** 候选仓库卡片：展示多维度标签、中文描述与两个阶段入口。 */
 import { useState } from 'react'
 import type { Candidate, DimensionLabels } from '../../api/types'
-import { Badge, Button } from '../ui'
-import { IconExternal, IconFlame, IconSearch, IconSpark } from '../ui/icons'
+import { Badge, Button, Sparkline, TrendDelta } from '../ui'
+import {
+  IconExternal,
+  IconFlame,
+  IconSearch,
+  IconSpark,
+  IconStar,
+  IconStarFilled,
+} from '../ui/icons'
 import { formatCount } from '../../utils/format'
 import './discovery.css'
 
@@ -11,7 +18,9 @@ interface CandidateCardProps {
   labels?: DimensionLabels
   onPreview: (c: Candidate) => void
   onAnalyze: (c: Candidate) => void
+  onToggleFavorite: (c: Candidate) => void
   analyzing?: boolean
+  favoritePending?: boolean
 }
 
 function tagClass(key: string, value: string): string {
@@ -26,7 +35,9 @@ export function CandidateCard({
   labels,
   onPreview,
   onAnalyze,
+  onToggleFavorite,
   analyzing = false,
+  favoritePending = false,
 }: CandidateCardProps) {
   const d = candidate.dimensions
   const [owner, repo] = candidate.full_name.split('/')
@@ -37,20 +48,40 @@ export function CandidateCard({
   const hasZh = zh.length > 0 && zh !== en
   const desc = showOriginal || !hasZh ? en : zh
   const projectLabel = labels?.project_type?.[d.project_type] ?? d.project_type
+  const fav = Boolean(candidate.favorited)
 
   return (
-    <article className="cand-card">
+    <article className={`cand-card${fav ? ' cand-card--favorited' : ''}`}>
       <header className="cand-card__head">
         <h3 className="cand-card__name">
           <span className="owner">{owner}/</span>
           {repo}
         </h3>
-        {candidate.trend === 'new' && (
-          <span className="cand-card__trend">
-            <IconFlame size={12} />
-            新上榜
-          </span>
-        )}
+        <div className="cand-card__head-right">
+          {candidate.trend === 'new' && (
+            <span className="cand-card__trend">
+              <IconFlame size={12} />
+              新上榜
+            </span>
+          )}
+          <button
+            type="button"
+            className={`cand-card__fav${fav ? ' is-on' : ''}`}
+            onClick={() => onToggleFavorite(candidate)}
+            disabled={favoritePending}
+            aria-pressed={fav}
+            aria-label={fav ? `取消收藏 ${candidate.full_name}` : `收藏 ${candidate.full_name}`}
+            title={fav ? '取消收藏' : '收藏，稍后再看'}
+          >
+            {favoritePending ? (
+              <span className="spinner" aria-hidden="true" />
+            ) : fav ? (
+              <IconStarFilled size={15} />
+            ) : (
+              <IconStar size={15} />
+            )}
+          </button>
+        </div>
       </header>
 
       <div className="cand-card__metrics">
@@ -70,6 +101,24 @@ export function CandidateCard({
           </span>
         ) : null}
       </div>
+
+      {/* star 趋势曲线（v1.8.3）：≥2 天数据才画，单点无趋势可言 */}
+      {(candidate.star_history?.length ?? 0) >= 2 && (
+        <div className="cand-card__spark">
+          <Sparkline
+            values={candidate.star_history as number[]}
+            days={candidate.history_days}
+            label={`${candidate.full_name} 的 star`}
+          />
+          <TrendDelta
+            delta={candidate.star_delta ?? 0}
+            days={(candidate.star_history as number[]).length}
+          />
+          <span className="cand-card__metric--subtle">
+            {candidate.history_days?.[0]} → {candidate.history_days?.[candidate.history_days.length - 1]}
+          </span>
+        </div>
+      )}
 
       <div className="cand-card__desc-wrap">
         <p className="cand-card__desc clamp-2">

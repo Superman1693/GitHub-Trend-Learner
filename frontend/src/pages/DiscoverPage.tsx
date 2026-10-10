@@ -6,15 +6,16 @@
  *   查看摘要（阶段一）  —— 只调搜索引擎
  *   深入解析（阶段二）  —— 仅在用户点击后才调 LLM
  */
-import { useMemo, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import type { Candidate, CandidateFilters } from '../api/types'
 import { useCandidates, useCandidateFacets, useAnalyzeCandidate } from '../hooks/useCandidates'
+import { useFavoriteToggle } from '../hooks/useFavorites'
 import { CandidateFilters as Filters } from '../components/discovery/CandidateFilters'
 import { CandidateCard } from '../components/discovery/CandidateCard'
 import { PreviewPanel } from '../components/discovery/PreviewPanel'
 import { Alert, Button, EmptyState, LoadingBlock, Spinner } from '../components/ui'
-import { IconSpark } from '../components/ui/icons'
+import { IconSpark, IconStar, IconStarFilled } from '../components/ui/icons'
 import '../styles/pages.css'
 import '../components/discovery/discovery.css'
 
@@ -24,12 +25,30 @@ export function DiscoverPage() {
   const navigate = useNavigate()
   const [filters, setFilters] = useState<CandidateFilters>(EMPTY_FILTERS)
   const [preview, setPreview] = useState<Candidate | null>(null)
+  // 收藏状态覆盖表：接口返回后只改本地这一条，不整列表重拉（见 useFavorites 的说明）
+  const [favOverride, setFavOverride] = useState<Record<string, boolean>>({})
 
   const { data, loading, error, reload } = useCandidates(filters)
   const { data: facets } = useCandidateFacets()
   const { submitting, error: analyzeError, run: analyze } = useAnalyzeCandidate()
 
-  const items = useMemo(() => data?.items ?? [], [data])
+  const onFavSettled = useCallback((name: string, favorited: boolean) => {
+    setFavOverride((prev) => ({ ...prev, [name]: favorited }))
+  }, [])
+  const { toggle: toggleFavorite, pending: favPending, error: favError } =
+    useFavoriteToggle(onFavSettled)
+
+  const items = useMemo(() => {
+    const raw = data?.items ?? []
+    return raw.map((c) =>
+      favOverride[c.full_name] === undefined
+        ? c
+        : { ...c, favorited: favOverride[c.full_name] },
+    )
+  }, [data, favOverride])
+
+  const onlyFav = filters.favorited === true
+  const favCount = useMemo(() => items.filter((c) => c.favorited).length, [items])
 
   const handleAnalyze = async (c: Candidate) => {
     const task = await analyze(...(c.full_name.split('/') as [string, string]))
@@ -51,7 +70,23 @@ export function DiscoverPage() {
           你可以先按口味筛选、再看搜索引擎的轻量摘要；
           <strong>只有当你点「深入解析」时，才会调用 AI 生成完整的六模块文档</strong>。
         </p>
+        <div className="row" style={{ marginTop: 'var(--sp-3)' }}>
+          <Button
+            icon={onlyFav ? <IconStarFilled size={14} /> : <IconStar size={14} />}
+            onClick={() => setFilters((f) => ({ ...f, favorited: f.favorited ? undefined : true }))}
+            title={onlyFav ? '显示全部候选' : '只看已收藏的仓库'}
+          >
+            {onlyFav ? '只看收藏中' : '只看收藏'}
+          </Button>
+          {favCount > 0 && <span className="text-subtle">本页已收藏 {favCount} 个</span>}
+        </div>
       </header>
+
+      {favError && (
+        <Alert tone="danger" title="收藏操作失败">
+          {favError}
+        </Alert>
+      )}
 
       {analyzeError && (
         <Alert tone="danger" title="无法提交解析任务">
@@ -108,7 +143,9 @@ export function DiscoverPage() {
                   labels={data?.labels}
                   onPreview={setPreview}
                   onAnalyze={handleAnalyze}
+                  onToggleFavorite={toggleFavorite}
                   analyzing={submitting}
+                  favoritePending={favPending === c.full_name}
                 />
               ))}
             </div>

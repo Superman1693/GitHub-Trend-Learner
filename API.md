@@ -1,8 +1,8 @@
 # 控制台 API 清单
 
-- 版本：v1.8.3
+- 版本：v1.9.0
 - 本文件由 `python main.py api-doc` 从路由表内省生成，请勿手工编辑。
-- 共 17 个接口；机器可读版本见 `GET /api/openapi.json`。
+- 共 22 个接口；机器可读版本见 `GET /api/openapi.json`。
 - 统一错误结构：`{"error": {"code": "...", "message": "..."}}`
 
 ## 接口一览
@@ -11,8 +11,11 @@
 | --- | --- | --- |
 | GET | `/api/candidates` | 候选仓库列表 |
 | GET | `/api/candidates/facets` | 候选筛选项与分布 |
+| GET | `/api/candidates/favorites` | 收藏清单 |
 | GET | `/api/candidates/{owner}/{repo}` | 候选仓库详情 |
 | POST | `/api/candidates/{owner}/{repo}/analyze` | 阶段二：调用 AI 深入解析 |
+| DELETE | `/api/candidates/{owner}/{repo}/favorite` | 取消收藏 |
+| POST | `/api/candidates/{owner}/{repo}/favorite` | 收藏仓库 |
 | POST | `/api/candidates/{owner}/{repo}/preview` | 阶段一：搜索引擎摘要 |
 | GET | `/api/documents` | 文档列表 / 全文检索 |
 | GET | `/api/documents/export` | 批量导出 ZIP |
@@ -21,7 +24,9 @@
 | GET | `/api/health` | 健康检查 |
 | GET | `/api/openapi.json` | 接口清单（OpenAPI 3.1） |
 | GET | `/api/system/config` | 运行配置 |
+| GET | `/api/system/metrics` | 运行指标 |
 | GET | `/api/system/overview` | 产出概览 |
+| GET | `/api/system/schedule` | 定时任务状态 |
 | GET | `/api/tasks` | 任务列表 |
 | POST | `/api/tasks` | 提交任务 |
 | GET | `/api/tasks/{task_id}` | 任务详情 |
@@ -44,6 +49,7 @@
 | `project_type` | query | 项目类型 |
 | `direction` | query | 技术方向 |
 | `trend` | query | 上榜态势 new/rising |
+| `favorited` | query | 只看收藏（true/false） |
 | `min_stars` | query | 最低 star |
 | `min_days` | query | 最少上榜天数 |
 | `q` | query | 关键词 |
@@ -55,6 +61,12 @@
 候选筛选项与分布
 
 返回各维度的取值分布、star 区间、可用日期与中文标签表，供筛选器渲染。
+
+### `GET /api/candidates/favorites`
+
+收藏清单
+
+返回已收藏的仓库（新收藏在前）。已从候选池下榜的也会列出并标记 `in_pool: false`，避免用户以为收藏丢了。
 
 ### `GET /api/candidates/{owner}/{repo}`
 
@@ -71,6 +83,26 @@
 阶段二：调用 AI 深入解析
 
 提交完整六模块解析任务（**会调用 LLM**），返回任务记录。
+
+- 路径参数：`owner`
+
+- 路径参数：`repo`
+
+### `DELETE /api/candidates/{owner}/{repo}/favorite`
+
+取消收藏
+
+移出收藏；未收藏时返回 200 且 `changed: false`。
+
+- 路径参数：`owner`
+
+- 路径参数：`repo`
+
+### `POST /api/candidates/{owner}/{repo}/favorite`
+
+收藏仓库
+
+加入收藏。幂等：已收藏时返回 200 且 `changed: false`，首次收藏返回 201。只记录仓库名，元信息仍从候选池实时取。
 
 - 路径参数：`owner`
 
@@ -148,11 +180,27 @@
 
 返回并发数、重试次数、LLM/SMTP/GitHub 是否就绪、六模块规范。敏感值只报告是否配置。
 
+### `GET /api/system/metrics`
+
+运行指标
+
+从最近 N 天日志聚合：任务成功率、各 Agent 调用数与耗时、缓存命中率（闭环 T16）、token 消耗、最慢调用与最近错误。`success_rate` 为 null 表示该 Agent 不记录 done 事件，无从计算。
+
+| 参数 | 位置 | 说明 |
+| --- | --- | --- |
+| `days` | query | 统计窗口天数，默认 7，上限 90 |
+
 ### `GET /api/system/overview`
 
 产出概览
 
 返回文档统计与任务运行数，供仪表盘使用。
+
+### `GET /api/system/schedule`
+
+定时任务状态
+
+返回定时任务是否在运行、下次/上次执行时间与上次结果。`serve` 是独立进程，这里通过它写下的心跳文件判断存活（心跳过期即视为已停止），并给出 reason 说明判定依据。
 
 ### `GET /api/tasks`
 

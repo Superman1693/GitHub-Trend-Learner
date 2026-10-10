@@ -10,6 +10,10 @@ import type {
   CandidateListResponse,
   DocumentDetail,
   DocumentMeta,
+  FavoriteListResponse,
+  FavoriteResult,
+  Metrics,
+  ScheduleStatus,
   HealthInfo,
   PreviewResponse,
   SubmitTaskPayload,
@@ -152,4 +156,28 @@ export const api = {
       { method: 'POST', body: JSON.stringify({}) },
       20000,
     ),
+
+  /* ---- 收藏（v1.8.3）：本地持久化，不涉及 LLM ---- */
+
+  favoriteCandidate: (owner: string, repo: string) =>
+    request<FavoriteResult>(
+      `/candidates/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/favorite`,
+      { method: 'POST', body: JSON.stringify({}) },
+    ),
+
+  unfavoriteCandidate: (owner: string, repo: string) =>
+    request<FavoriteResult>(
+      `/candidates/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/favorite`,
+      { method: 'DELETE' },
+    ),
+
+  favoriteList: () => request<FavoriteListResponse>('/candidates/favorites'),
+
+  /* ---- 系统 ---- */
+
+  /** 定时任务状态（serve 是独立进程，靠心跳文件判断） */
+  schedule: () => request<ScheduleStatus>('/system/schedule'),
+
+  /** 运行指标（从日志聚合） */
+  metrics: (days = 7) => request<Metrics>(`/system/metrics?days=${days}`),
 }
