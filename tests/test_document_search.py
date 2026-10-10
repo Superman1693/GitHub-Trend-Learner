@@ -81,5 +81,21 @@ def test_search_no_match(outputs):
     assert document_service.search_documents("绝不存在的关键词zzz") == []
 
 
-def test_search_respects_limit(outputs):
-    assert len(document_service.search_documents("a", limit=1)) == 1
+def test_search_respects_max_results(outputs):
+    """max_results 只作防御性上限，不影响正常返回。"""
+    assert len(document_service.search_documents("a", max_results=1)) == 1
+    assert len(document_service.search_documents("a")) >= 1
+
+
+def test_route_total_is_full_match_count_not_page_size(outputs):
+    """回归：total 必须是真实命中数，而非被 limit 截断后的条数。"""
+    import json
+
+    from server.http.request import Request
+    from server.routes.documents import list_documents
+
+    resp = list_documents(Request.from_raw("GET", "/api/documents?q=a&limit=1", {}, b""))
+    payload = json.loads(resp.body)
+    assert payload["full_text"] is True
+    assert len(payload["items"]) == 1
+    assert payload["total"] >= len(payload["items"]), "total 不应被 limit 截断"

@@ -14,8 +14,9 @@ def list_documents(req: Request) -> Response:
             limit = min(max(int(req.q("limit") or 50), 1), 200)
         except ValueError:
             limit = 50
-        hits = document_service.search_documents(keyword, limit=limit)
-        return json_response({"total": len(hits), "items": hits, "query": keyword,
+        hits = document_service.search_documents(keyword)
+        # total 是真实命中数，items 才是当前页——两者必须区分，否则前端无法做分页提示
+        return json_response({"total": len(hits), "items": hits[:limit], "query": keyword,
                               "full_text": True})
 
     docs = document_service.list_documents()

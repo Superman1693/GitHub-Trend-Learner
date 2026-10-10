@@ -1,7 +1,7 @@
 {
   "name": "github-trend-learner-ui",
   "private": true,
-  "version": "1.8.0",
+  "version": "1.8.2",
   "type": "module",
   "description": "GitHub-Trend-Learner 可视化控制台",
   "scripts": {

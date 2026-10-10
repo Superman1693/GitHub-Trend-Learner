@@ -167,12 +167,14 @@ def _snippet(text: str, needle: str, width: int = 100) -> str:
     return ("…" if start > 0 else "") + frag + ("…" if end < len(text) else "")
 
 
-def search_documents(query: str, limit: int = 50) -> list[dict]:
+def search_documents(query: str, max_results: int = 500) -> list[dict]:
     """**全文检索**产出文档（v1.8，CODE_REVIEW.md F5）。
 
     此前只按文件名与标题匹配，正文里的关键词搜不到。现在同时扫描正文，
     返回命中次数与上下文片段；按「命中次数 → 日期 → 名称」排序。
-    outputs/ 体量很小（每日几份），全量扫描足够快，无需建索引。
+
+    返回**全部**命中（上限 `max_results` 仅作防御），分页由调用方负责——
+    否则调用方无法区分「真实命中数」与「本页条数」。outputs/ 体量很小，全量扫描足够快。
     """
     needle = (query or "").strip().lower()
     if not needle:
@@ -195,7 +197,7 @@ def search_documents(query: str, limit: int = 50) -> list[dict]:
             "matched_in": ("正文" if count else "") + ("标题" if in_meta else ""),
         })
     hits.sort(key=lambda h: (-h["match_count"], h["date"], h["name"]))
-    return hits[:limit]
+    return hits[:max_results]
 
 
 def stats() -> dict:

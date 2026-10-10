@@ -188,7 +188,7 @@ python main.py daily                         # 抓取今日热门并归档/发�
 
 ## 文档状态
 
-- 文档版本：v1.8.1
+- 文档版本：v1.8.2
 - 已就绪：`global.md`、`requirements.md`、`design.md`、`tasks.md`、`agent/*.md`（5 份）、`templates/*.md`（2 份）；流水线代码 `app/`、CLI `main.py`、后端 `server/`、前端 `frontend/`、测试 `tests/`（**171 项全部通过**）
 - 决策事项：Q1–Q9 见 `requirements.md` §9 与 `tasks.md` 决策记录
 - 数据读取：GitHub REST API 直连（`github.com/trending` 多入口聚合主方案 + Search API 降级）

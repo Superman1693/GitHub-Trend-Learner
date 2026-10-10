@@ -227,6 +227,31 @@ def test_config_exposes_module_specs():
     assert all("、" not in m["name"] for m in payload["modules"]), "展示用名称不应带序号"
 
 
+def test_version_is_consistent_across_artifacts():
+    """回归：app.__version__ / frontend/package.json / README 文档版本必须一致。
+
+    实际发生过——补了 CHANGELOG 却忘了 bump `__version__`，导致健康检查报旧版本。
+    """
+    import json
+    import re
+
+    from app import __version__
+    from app.config import PROJECT_ROOT
+
+    pkg = json.loads((PROJECT_ROOT / "frontend" / "package.json").read_text(encoding="utf-8"))
+    assert pkg["version"] == __version__, "frontend/package.json 版本与 app.__version__ 不一致"
+
+    readme = (PROJECT_ROOT / "README.md").read_text(encoding="utf-8")
+    found = re.search(r"文档版本：v?([0-9][0-9.]*)", readme)
+    assert found, "README 未声明文档版本"
+    assert found.group(1).rstrip(".") == __version__, (
+        f"README 文档版本 {found.group(1)} 与 app.__version__ {__version__} 不一致"
+    )
+
+    changelog = (PROJECT_ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
+    assert f"## [{__version__}]" in changelog, "CHANGELOG 缺少当前版本的条目"
+
+
 # ---------------- B1：子阶段重试 ----------------
 
 def _bare_orchestrator():
