@@ -23,3 +23,8 @@ pnpm-debug.log*
 # 缓存
 .vite/
 *.tsbuildinfo
+
+# Vite 构建时生成的临时配置（含本机绝对路径，不得入库）
+vite.config.ts.timestamp-*.mjs
+vite.config.js.timestamp-*.mjs
+*.timestamp-*.mjs
