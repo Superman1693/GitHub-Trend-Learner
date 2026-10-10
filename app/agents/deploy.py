@@ -40,8 +40,10 @@ def _render_env_requirements(items: list[dict]) -> list[str]:
         return lines
 
     for i, item in enumerate(items, 1):
-        name = str(item.get("name") or "未命名依赖").strip()
-        version = str(item.get("version") or "版本未明确").strip()
+        # 先 strip 再兜底：`"  "` 是 truthy，用 `or` 兜底会漏掉「只有空白」的值，
+        # 导致 M5 里渲染出空名称/空版本（v1.8.3 修复）
+        name = str(item.get("name") or "").strip() or "未命名依赖"
+        version = str(item.get("version") or "").strip() or "版本未明确"
         guide = str(item.get("install_guide") or "").strip()
         lines += [f"#### {i}. {name}（需要 {version}）", ""]
         lines += [guide if guide else "【注意】该依赖的安装教程缺失，请以仓库 README 为准。", ""]

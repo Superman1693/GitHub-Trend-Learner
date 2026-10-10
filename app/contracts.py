@@ -28,8 +28,12 @@ PROJECT_TYPE_LABELS: dict[str, str] = {
 
 
 def project_type_label(value: str | None) -> str:
-    """把项目类型枚举转成中文标签；未知值原样回退（不抛错）。"""
-    return PROJECT_TYPE_LABELS.get((value or "").strip(), value or "未知")
+    """把项目类型枚举转成中文标签；未知值原样回退（不抛错）。
+
+    先 strip 再判断，避免 `"  "` 这类空白值被当成有效值返回（v1.8.3）。
+    """
+    key = (value or "").strip()
+    return PROJECT_TYPE_LABELS.get(key) or (key or "未知")
 
 # 六模块标准命名（global.md §2.1，唯一权威来源）
 # v1.5：删除原 M6「部署与使用常见报错大全」，原 M7「新手学习提升指南」前移为 M6。
