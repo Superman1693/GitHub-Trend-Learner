@@ -8,7 +8,7 @@
 
 ## [1.8.3] - 2026-10-10
 
-测试覆盖率补强：**68% → 86.6%**，测试 212 → **379 项**；`ruff check` 全绿。
+测试覆盖率补强：**68% → 90.4%**，测试 212 → **445 项**；`ruff check` 全绿。
 
 ### 修复
 
@@ -16,18 +16,25 @@
   专门处理了 HEAD（说明本意支持），但 `Router` 未注册 HEAD，导致永远匹配不上。
   按 RFC 9110 §9.3.2「HEAD 语义等同 GET，仅不返回消息体」，现于 `Router.match` 回退到 GET，
   并在 `allow_methods` 中一并列出 HEAD。健康检查探针常用 HEAD，此前会误判服务不可用。
+- **空白值兜底顺序错误**（补测时发现，2 处同一根因）：`str(x or "默认值").strip()` 中
+  `"  "` 是 truthy，`or` 不触发，strip 后变空串 → M5 里渲染出
+  `#### 1. （需要 版本未明确）` 这样的空名称；`project_type_label("  ")` 返回空白。
+  改为先 strip 再兜底。
 
 ### 变更
 
-- **测试覆盖率 68% → 86.6%**（`CODE_REVIEW.md` F10）：用覆盖率量化定位缺口后补测，
+- **测试覆盖率 68% → 90.4%**（`CODE_REVIEW.md` F10）：用覆盖率量化定位缺口后补测，
   重点覆盖此前几乎没测的核心路径：
 
   | 模块 | 覆盖率 | 补测内容 |
   | --- | --- | --- |
   | `app/llm.py` | 19% → **100%** | 重试策略、`response_format` 降级、`extract_json` 的字符串/转义配对 |
   | `app/agents/tutor.py` | 19% → **100%** | 门禁退回/降级控制流、局部修复不丢模块、glossary 保留 |
-  | `app/agents/analyst.py` | 30% → **100%** | 契约违约（缺模块）、非法 project_type 归零、降级 note 注入 |
-  | `app/mailer.py` | 25% → **100%** | 归档落盘、SMTP 未配置降级、重试耗尽如实报错、RFC 2231 附件名 |
+  | `app/agents/analyst.py` | 30% → **100%** | 契约违约、非法 project_type 归零、降级 note 注入 |
+  | `app/agents/deploy.py` | 77% → **100%** | M5 五段渲染的空值兜底与表格转义、三平台强制校验、C1 回归 |
+  | `app/mailer.py` | 25% → **100%** | 归档落盘、SMTP 降级、重试耗尽如实报错、RFC 2231 附件名 |
+  | `server/routes/candidates.py` | 30% → **93%** | 阶段一零 LLM 边界、阶段二任务提交、筛选参数透传、取树失败兜底 |
+  | `server/services/document_service.py` | 65% → **92%** | 模块切分、文档头元信息、列表排序、路径校验、统计 |
   | `app/orchestrator.py` | 28% → **90%** | 路由分类、缓存命中短路、降级四件套、**「降级不写缓存」回归**、top 钳制 |
   | `app/github_client.py` | 50% → **98%** | 限流等待、5xx 退避、404 语义、空仓库 409 |
   | `app/search.py` | 61% → **98%** | Bing HTML 解析（跳转链还原、非法链接跳过、改版容错）、三级降级链 |

@@ -192,7 +192,7 @@ python main.py daily                         # 抓取今日热门并归档/发�
 ## 文档状态
 
 - 文档版本：v1.8.3
-- 已就绪：`global.md`、`requirements.md`、`design.md`、`tasks.md`、`agent/*.md`（5 份）、`templates/*.md`（2 份）；流水线代码 `app/`、CLI `main.py`、后端 `server/`、前端 `frontend/`、测试 `tests/`（**379 项全部通过**）
+- 已就绪：`global.md`、`requirements.md`、`design.md`、`tasks.md`、`agent/*.md`（5 份）、`templates/*.md`（2 份）；流水线代码 `app/`、CLI `main.py`、后端 `server/`、前端 `frontend/`、测试 `tests/`（**445 项全部通过**）
 - 工程保障：`ruff.toml`（lint 全绿）、`.github/workflows/ci.yml`、`requirements-dev.txt`、`requirements.lock`、`.gitattributes`
 - 接口清单：`API.md`（由 `python main.py api-doc` 从路由表内省生成）；机器可读版本见 `GET /api/openapi.json`
 - 决策事项：Q1–Q9 见 `requirements.md` §9 与 `tasks.md` 决策记录
