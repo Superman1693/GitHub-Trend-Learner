@@ -66,8 +66,12 @@ export function DocumentList({ items, loading, error, emptyHint }: DocumentListP
                   <div className="doc-card__meta">
                     <Badge tone="accent">{doc.module_count} 个模块</Badge>
                     <Badge>{formatBytes(doc.size)}</Badge>
+                    {doc.match_count ? (
+                      <Badge tone="success">命中 {doc.match_count} 处</Badge>
+                    ) : null}
                     <span className="text-subtle truncate">{doc.name}</span>
                   </div>
+                  {doc.snippet && <p className="doc-card__snippet clamp-2">{doc.snippet}</p>}
                 </div>
                 <IconChevronRight size={16} />
               </Link>

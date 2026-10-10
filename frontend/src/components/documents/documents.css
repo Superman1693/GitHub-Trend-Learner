@@ -123,6 +123,16 @@
   flex: none;
 }
 
+/* 全文检索命中片段（v1.8，CODE_REVIEW.md F5） */
+.doc-card__snippet {
+  margin: var(--sp-2) 0 0;
+  padding-left: var(--sp-3);
+  border-left: 2px solid var(--c-accent-border);
+  font-size: var(--fs-xs);
+  line-height: var(--lh-snug);
+  color: var(--c-text-muted);
+}
+
 /* ---------------- 日期分组 ---------------- */
 .date-group {
   margin-bottom: var(--sp-6);

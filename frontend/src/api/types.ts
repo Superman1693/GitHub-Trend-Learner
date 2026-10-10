@@ -13,6 +13,10 @@ export interface DocumentMeta {
   size: number
   modified: string
   module_count: number
+  /** 全文检索命中时才返回（v1.8） */
+  snippet?: string
+  match_count?: number
+  matched_in?: string
 }
 
 export interface DocumentModule {

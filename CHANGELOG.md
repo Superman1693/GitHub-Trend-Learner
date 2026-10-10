@@ -6,6 +6,37 @@
 
 ---
 
+## [1.8.2] - 2026-10-10
+
+工程基建补齐 + 缓存淘汰 + 文档全文检索。**190 项测试全部通过**，`ruff check` 全绿。
+
+### 新增
+
+- **文档全文检索**（`CODE_REVIEW.md` F5）：`GET /api/documents?q=` 现在同时检索**正文**，
+  返回 `match_count` 与上下文 `snippet`；前端文档页加 300ms 防抖，命中片段带左侧强调线展示。
+  此前只匹配文件名与标题，正文关键词搜不到。
+- **缓存淘汰**（`app/maintenance.py`，B7）：按保留期清理 `repo-*.json`（默认 90 天）、
+  `trending-*.json`（30 天），`translations.json` 超 5000 条保留最新；支持 `dry_run` 预演。
+  明确不触碰 `tasks.json` 与 `candidates-*.json`。
+- **CLI**：`python main.py cache [--prune] [--dry-run] [--repo-keep-days N]`。
+- **CI**：`.github/workflows/ci.yml`（ruff + pytest + 前端构建）。
+- **依赖声明**：`requirements-dev.txt`（pytest/ruff）、`requirements.lock`（pip freeze 精确锁定）。
+- **`ruff.toml`**：行宽 100、目标 py311，只启用能抓真实缺陷的规则集。
+- **`.gitattributes`**：仓库内统一 LF，Windows 脚本保持 CRLF。
+- **版本控制**：`git init` + 首次提交（`.gitignore` 补全 `node_modules`/`.venv`/`dist`/`.history`/
+  `_backup_v1.5_20261008`，避免 73M 前端依赖与凭据入库；`.git` 仅 691K）。
+
+### 修复
+
+- 清零 22 处 lint 问题，含 3 处**真实死代码**：
+  `app/llm.py` 未使用的 `.log` 导入、`main.py` 未使用的 `pathlib.Path`、
+  `app/classify.py` 未使用的局部变量 `name`。
+- 移除 `server/config.py` 中已无引用的六模块副本。
+- `run_daily` 结束时自动清理超期缓存（无删除则不产生日志）。
+- 测试隔离：`conftest.py` 新增 autouse fixture，测试不再污染真实 `logs/`。
+
+---
+
 ## [1.8.1] - 2026-10-10
 
 按 `CODE_REVIEW.md` 的结论系统修复缺陷、补齐边界处理并扩展功能。**171 项测试全部通过**（新增 46 项）。

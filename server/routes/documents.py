@@ -6,17 +6,23 @@ from ..services import document_service
 
 
 def list_documents(req: Request) -> Response:
+    """文档列表。带 `q` 时执行**全文检索**（v1.8：此前只匹配文件名/标题）。"""
+    keyword = (req.q("q") or "").strip()
+
+    if keyword:
+        try:
+            limit = min(max(int(req.q("limit") or 50), 1), 200)
+        except ValueError:
+            limit = 50
+        hits = document_service.search_documents(keyword, limit=limit)
+        return json_response({"total": len(hits), "items": hits, "query": keyword,
+                              "full_text": True})
+
     docs = document_service.list_documents()
     date = req.q("date")
     if date:
         docs = [d for d in docs if d["date"] == date]
-    keyword = (req.q("q") or "").strip().lower()
-    if keyword:
-        docs = [
-            d for d in docs
-            if keyword in d["name"].lower() or keyword in d["title"].lower()
-        ]
-    return json_response({"total": len(docs), "items": docs})
+    return json_response({"total": len(docs), "items": docs, "full_text": False})
 
 
 def get_document(req: Request) -> Response:

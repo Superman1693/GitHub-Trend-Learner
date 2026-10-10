@@ -155,6 +155,49 @@ def load_document(date: str, name: str) -> dict | None:
     }
 
 
+def _snippet(text: str, needle: str, width: int = 100) -> str:
+    """截取命中处附近的片段，供前端展示「为什么命中」（v1.8）。"""
+    idx = text.lower().find(needle)
+    if idx < 0:
+        return ""
+    half = max(10, width // 2)
+    start = max(0, idx - half)
+    end = min(len(text), idx + len(needle) + half)
+    frag = " ".join(text[start:end].split())
+    return ("…" if start > 0 else "") + frag + ("…" if end < len(text) else "")
+
+
+def search_documents(query: str, limit: int = 50) -> list[dict]:
+    """**全文检索**产出文档（v1.8，CODE_REVIEW.md F5）。
+
+    此前只按文件名与标题匹配，正文里的关键词搜不到。现在同时扫描正文，
+    返回命中次数与上下文片段；按「命中次数 → 日期 → 名称」排序。
+    outputs/ 体量很小（每日几份），全量扫描足够快，无需建索引。
+    """
+    needle = (query or "").strip().lower()
+    if not needle:
+        return []
+    hits: list[dict] = []
+    for item in list_documents():
+        path = OUTPUTS_DIR / item["date"] / item["name"]
+        try:
+            text = path.read_text(encoding="utf-8", errors="replace")
+        except OSError:
+            continue
+        count = text.lower().count(needle)
+        in_meta = needle in item["name"].lower() or needle in item["title"].lower()
+        if not count and not in_meta:
+            continue
+        hits.append({
+            **item,
+            "match_count": count,
+            "snippet": _snippet(text, needle),
+            "matched_in": ("正文" if count else "") + ("标题" if in_meta else ""),
+        })
+    hits.sort(key=lambda h: (-h["match_count"], h["date"], h["name"]))
+    return hits[:limit]
+
+
 def stats() -> dict:
     """产出概览，供仪表盘使用。"""
     docs = list_documents()
