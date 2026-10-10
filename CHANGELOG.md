@@ -44,6 +44,12 @@
   `app/llm.py` 未使用的 `.log` 导入、`main.py` 未使用的 `pathlib.Path`、
   `app/classify.py` 未使用的局部变量 `name`。
 - 移除 `server/config.py` 中已无引用的六模块副本。
+- **清理死代码**（`CODE_REVIEW.md` A5）：
+  - `app/search.py` 删除 `quote_query`；`build_query` 此前无生产调用，
+    改为让 `search_repo` 复用（消除「精确名」规则的两处重复），并补测试锁定生产路径；
+  - `app/quality_gate.py` `run_gate()` 移除从未被读取的 `html_url` 参数（`tutor.py` 同步）；
+  - `app/orchestrator.py` 移除纯转发的 `_head_sha` 包装，直接调用 client；
+  - 前端删除无人调用的 `useCandidateDetail` / `api.candidateDetail` 链路。
 - **移除误入库的 Vite 构建临时文件** `frontend/vite.config.ts.timestamp-*.mjs`
   （含本机绝对路径），并在 `frontend/.gitignore` 加规则防复发。
 - `run_daily` 结束时自动清理超期缓存（无删除则不产生日志）。

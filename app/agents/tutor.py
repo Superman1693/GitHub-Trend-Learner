@@ -37,8 +37,7 @@ def run(llm: LLMClient, meta: RepoMeta, draft: DraftDoc, plan: DeployPlan,
 
     # 质量门禁循环：退回 ≤2 次（global.md §6.2）
     while True:
-        issues = quality_gate.run_gate(modules, meta.html_url,
-                                       upstream_notes=draft.notes)
+        issues = quality_gate.run_gate(modules, upstream_notes=draft.notes)
         if not issues:
             gate_result = "pass"
             break

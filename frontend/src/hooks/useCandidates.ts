@@ -2,7 +2,6 @@
 import { useCallback, useState } from 'react'
 import { ApiRequestError, api } from '../api/client'
 import type {
-  Candidate,
   CandidateFacets,
   CandidateFilters,
   CandidateListResponse,
@@ -19,17 +18,6 @@ export function useCandidates(filters: CandidateFilters): AsyncState<CandidateLi
 export function useCandidateFacets(): AsyncState<CandidateFacets> {
   const loader = useCallback(() => api.candidateFacets(), [])
   return useAsync(loader, [])
-}
-
-export function useCandidateDetail(
-  owner: string | undefined,
-  repo: string | undefined,
-): AsyncState<Candidate> {
-  const loader = useCallback(async () => {
-    if (!owner || !repo) throw new Error('缺少仓库标识')
-    return api.candidateDetail(owner, repo)
-  }, [owner, repo])
-  return useAsync(loader, [owner, repo])
 }
 
 /** 阶段一：搜索引擎摘要。可重复触发，不计入 LLM 预算。 */

@@ -190,9 +190,12 @@ def _check_v7(modules: dict) -> list[dict]:
     return issues
 
 
-def run_gate(modules: dict, html_url: str = "",
-             upstream_notes: list[str] | None = None) -> list[dict]:
-    """执行 V1–V7，返回问题清单；空列表即通过。upstream_notes 为上游 DraftDoc.notes。"""
+def run_gate(modules: dict, upstream_notes: list[str] | None = None) -> list[dict]:
+    """执行 V1–V7，返回问题清单；空列表即通过。
+
+    `upstream_notes` 为上游 DraftDoc.notes。
+    v1.8.2：移除从未被使用的 `html_url` 参数（此前 tutor 一直传但函数体内不读）。
+    """
     issues: list[dict] = []
     issues += _check_v1(modules)
     issues += _check_v2(modules)

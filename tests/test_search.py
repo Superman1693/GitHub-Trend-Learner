@@ -12,6 +12,27 @@ def test_build_query_is_exact_name():
     assert "Reverse" not in q
 
 
+def test_search_repo_first_attempt_is_exact_name(monkeypatch):
+    """生产路径回归：search_repo 的一级检索词必须复用 build_query 的精确名规则。
+
+    v1.8.2 前 `search_repo` 里另写了一遍 `f'"{full_name}"'`，与 build_query 重复；
+    本测试同时锁住「精确名优先」的行为与「只有一处实现」的约束。
+    """
+    seen: list[str] = []
+
+    def fake_bing(query: str, limit: int, timeout: int):
+        seen.append(query)
+        return [search.SearchResult("GitHub - a/b", "https://github.com/a/b", "desc", "github.com")]
+
+    monkeypatch.setattr(search, "_bing", fake_bing)
+    outcome = search.search_repo("a/b", "noisy description words here")
+
+    assert seen and seen[0] == search.build_query("a/b")
+    assert seen[0] == '"a/b"'
+    assert outcome.provider == "bing"
+    assert "noisy" not in seen[0]
+
+
 def test_rank_prefers_github_and_name_match():
     results = [
         search.SearchResult("TOP 25 QUOTES BY DMX", "https://azquotes.com/x", "quotes", "azquotes.com"),

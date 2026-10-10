@@ -89,7 +89,8 @@ class Orchestrator:
         try:
             full_name = collector.resolve_full_name(name)
             repo_info = self.client.get_repo(full_name)
-            head_sha = self._head_sha(full_name, repo_info.get("default_branch") or "main")
+            head_sha = self.client.get_branch_sha(
+                full_name, repo_info.get("default_branch") or "main")
             cached = self.cache.get(full_name, head_sha)
             if cached:
                 log.console(f"  [缓存] {full_name}@{head_sha[:8]} 命中，复用既有解析结果")
@@ -181,9 +182,6 @@ class Orchestrator:
                 if attempt < attempts:
                     time.sleep(min(2 ** attempt, 8))
         raise last_exc if last_exc is not None else RuntimeError(f"{agent} 未产出结果")
-
-    def _head_sha(self, full_name: str, ref: str) -> str:
-        return self.client.get_branch_sha(full_name, ref)
 
     # ---- 三个对外流程 ----
 

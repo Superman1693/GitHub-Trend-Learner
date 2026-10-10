@@ -5,7 +5,6 @@
  */
 import type {
   ApiError,
-  Candidate,
   CandidateFacets,
   CandidateFilters,
   CandidateListResponse,
@@ -137,9 +136,6 @@ export const api = {
   },
 
   candidateFacets: () => request<CandidateFacets>('/candidates/facets'),
-
-  candidateDetail: (owner: string, repo: string) =>
-    request<Candidate>(`/candidates/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}`),
 
   /** 阶段一：搜索引擎摘要（后端保证不调用 LLM） */
   previewCandidate: (owner: string, repo: string, query?: string) =>

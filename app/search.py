@@ -14,7 +14,7 @@ import html
 import re
 import time
 from dataclasses import asdict, dataclass, field
-from urllib.parse import quote, urlparse
+from urllib.parse import urlparse
 
 import requests
 
@@ -96,7 +96,8 @@ def build_query(full_name: str, description: str | None = None) -> str:
 
     早期把描述关键词直接拼进检索词，对冷门仓库会把结果带偏
     （实测 `morluto/rea` + "Reverse engineer anything" 返回了一堆名人名言页）。
-    现在改为「精确名 → 名+github → 名+描述词」三级递进。
+    因此一级检索词始终是精确名；`description` 参数保留是为了兼容旧调用方，
+    实际的分级策略见 `search_repo`（精确名 → 名+github → 名+描述词）。
     """
     return f'"{full_name}"'
 
@@ -204,7 +205,8 @@ def search_repo(
     """
     started = time.perf_counter()
     desc = _desc_words(description)
-    attempts = [f'"{full_name}"', f"{full_name} github"]
+    # 一级检索词复用 build_query，避免「精确名」规则在两处各写一遍（v1.8.2）
+    attempts = [build_query(full_name), f"{full_name} github"]
     if desc:
         attempts.append(f"{full_name} {desc}")
 
@@ -258,7 +260,3 @@ def search_query(raw: str, *, limit: int = 8, timeout: int = 8) -> SearchOutcome
 
 def build_repo_url(full_name: str) -> str:
     return f"https://github.com/{full_name}"
-
-
-def quote_query(text: str) -> str:
-    return quote(text, safe="")

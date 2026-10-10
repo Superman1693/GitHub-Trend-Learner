@@ -56,6 +56,7 @@
 | A2 | ✅ 已修复 | `PROJECT_TYPES` 补齐 `resource`，标签表收敛到 `contracts` | 单测（枚举全覆盖） |
 | A3 | ✅ 已修复 | `app.__version__` 单一来源 | 单测 + HTTP 实测（`GTL/1.8.0`） |
 | A4 | ✅ 已修复 | `orchestrator` 复用 `config.CACHE_DIR` | 代码审查 |
+| A5 | ✅ 已修复 | 死代码清理：删 `quote_query`、`run_gate` 的 `html_url` 参数、`_head_sha` 包装、前端 `useCandidateDetail` 链路；`build_query` 改为被 `search_repo` 复用 | 单测（含生产路径回归）+ 前端构建 |
 | F3 | ✅ 已修复 | `POST /api/tasks/{id}/retry` + 任务中心「重试此任务」 | HTTP + 前端截图 |
 | F4 | ✅ 已修复 | 任务持久化到 `cache/tasks.json` | 单测 + 实测文件落盘 |
 | F9/F10 | ✅ 已修复 | 新增 46 项测试（translate / task_service / v18 回归） | 171 passed |
@@ -92,7 +93,7 @@
 | E5（延伸） | ✅ 已修复 | `.gitattributes` 统一换行符 | — |
 | D1（部分） | ✅ 已修复 | `git init` + 2 次提交；`.gitignore` 补全 5 类大目录/敏感项 | `.git` 仅 691K，暂存 134 文件且密钥扫描通过 |
 
-**测试数量演进**：125（v1.8）→ 171（v1.8.1）→ 181 → 190 → 201 → **211**（v1.8.2 收尾）
+**测试数量演进**：125（v1.8）→ 171（v1.8.1）→ 181 → 190 → 201 → 211 → **212**（v1.8.2 收尾）
 
 ---
 
